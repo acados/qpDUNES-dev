@@ -2,7 +2,7 @@
  *	This file is part of qpDUNES.
  *
  *	qpDUNES -- A DUal NEwton Strategy for convex quadratic programming.
- *	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al. 
+ *	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al.
  *	All rights reserved.
  *
  *	qpDUNES is free software; you can redistribute it and/or
@@ -85,18 +85,20 @@
 
 /** simple types */
 #ifndef __MATLAB__
-	#ifndef int_t
-		typedef int int_t;
-	#endif
 	#ifndef uint_t
 		typedef unsigned int uint_t;
 	#endif
-	#ifndef real_t
-		#ifdef __USE_SINGLE_PRECISION__
-			typedef float real_t;
-		#else
-			typedef double real_t;
-		#endif	/* __USE_SINGLE_PRECISION__ */
+	#ifndef ACADOS_UTILS_TYPES_H_
+		#ifndef int_t
+			typedef int int_t;
+		#endif
+		#ifndef real_t
+			#ifdef __USE_SINGLE_PRECISION__
+				typedef float real_t;
+			#else
+				typedef double real_t;
+			#endif	/* __USE_SINGLE_PRECISION__ */
+		#endif
 	#endif
 #else	/* __MATLAB__ */
 	typedef int int_t;
