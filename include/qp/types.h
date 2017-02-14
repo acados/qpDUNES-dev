@@ -88,7 +88,7 @@
 	#ifndef uint_t
 		typedef unsigned int uint_t;
 	#endif
-	#ifndef ACADOS_UTILS_TYPES_H_
+	#ifndef USE_ACADOS_TYPES
 		#ifndef int_t
 			typedef int int_t;
 		#endif
@@ -99,7 +99,7 @@
 				typedef double real_t;
 			#endif	/* __USE_SINGLE_PRECISION__ */
 		#endif
-	#endif
+	#endif  /* USE_ACADOS_TYPES */
 #else	/* __MATLAB__ */
 	typedef int int_t;
 	typedef unsigned int uint_t;
