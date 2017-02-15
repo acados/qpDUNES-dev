@@ -35,9 +35,14 @@
 #ifndef QPDUNES_TYPES_H
 #define QPDUNES_TYPES_H
 
+#ifdef USE_ACADOS_TYPES
+#include "acados/utils/types.h"
+#endif
+
 #ifdef __MATLAB__
 #include "matrix.h"	/* for mwSize types */
 #endif
+
 
 #define __USE_ASSERTS__ 					/* check return values of routines rigorously (useful for debugging) */
 #undef __USE_ASSERTS__
