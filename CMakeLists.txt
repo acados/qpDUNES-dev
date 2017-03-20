@@ -2,7 +2,7 @@
 ##	This file is part of qp42.
 ##
 ##	qp42 -- An Implementation of the Online Active Set Strategy.
-##	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al. 
+##	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al.
 ##	All rights reserved.
 ##
 ##	qp42 is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@
 ################################################################################
 
 #
-# Minimum required version of cmake 
+# Minimum required version of cmake
 #
 CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
 
@@ -133,6 +133,11 @@ OPTION( QPDUNES_WITH_LAPACK
 OPTION( QPDUNES_WITH_BLAS
 	"Build qpOASES using original BLAS routines"
 	OFF
+)
+
+OPTION( QPDUNES_ACADOS
+	"Do not build qpDUNES examples and suppress output"
+	ON
 )
 
 ################################################################################
@@ -238,7 +243,7 @@ IF ( NOT QPDUNES_SIMPLE_BOUNDS_ONLY )
    	SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshadow -finline-functions -fPIC" )
 	SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLINUX -D__cplusplus -D__NO_COPYRIGHT__" )
 
-   	INCLUDE_DIRECTORIES(	
+   	INCLUDE_DIRECTORIES(
         # qpOASES include paths
 		./externals/qpOASES-3.0beta
 		./externals/qpOASES-3.0beta/include
@@ -268,7 +273,7 @@ IF ( NOT QPDUNES_SIMPLE_BOUNDS_ONLY )
 		${CMAKE_CURRENT_SOURCE_DIR}/externals/qpOASES-3.0beta/src/Utils.cpp
 	)
 
-	FILE( GLOB QPOASES_HEADERS 
+	FILE( GLOB QPOASES_HEADERS
 		${CMAKE_CURRENT_SOURCE_DIR}/externals/qpOASES-3.0beta/include/*.hpp )
 
 	# Find LAPACK
@@ -315,7 +320,7 @@ ENDIF()
 #
 ADD_LIBRARY(
 	qpdunes STATIC
-	
+
 	# Sources and headers
 	${qpDUNES_HEADERS}
 	${qpDUNES_SOURCES}
@@ -343,24 +348,26 @@ ENDIF()
 # is in exactly one file.
 #
 
-FILE( GLOB qpDUNES_EXAMPLES ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.c )
-FOREACH( EXAMPLE ${qpDUNES_EXAMPLES} )
-	GET_FILENAME_COMPONENT( EXEC_NAME ${EXAMPLE} NAME_WE )
-	ADD_EXECUTABLE( example_${EXEC_NAME} ${EXAMPLE} )
-	TARGET_LINK_LIBRARIES(
-		example_${EXEC_NAME}
-		qpdunes
-	)
-	SET_TARGET_PROPERTIES( example_${EXEC_NAME} 
-		PROPERTIES
-		OUTPUT_NAME "${EXEC_NAME}"		   
-	)
-	ADD_TEST(
-		NAME test_${EXEC_NAME}
-		WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
-		COMMAND ${EXEC_NAME}
-	)
-ENDFOREACH()
+IF ( NOT QPDUNES_ACADOS )
+	FILE( GLOB qpDUNES_EXAMPLES ${CMAKE_CURRENT_SOURCE_DIR}/examples/*.c )
+	FOREACH( EXAMPLE ${qpDUNES_EXAMPLES} )
+		GET_FILENAME_COMPONENT( EXEC_NAME ${EXAMPLE} NAME_WE )
+		ADD_EXECUTABLE( example_${EXEC_NAME} ${EXAMPLE} )
+		TARGET_LINK_LIBRARIES(
+			example_${EXEC_NAME}
+			qpdunes
+		)
+		SET_TARGET_PROPERTIES( example_${EXEC_NAME}
+			PROPERTIES
+			OUTPUT_NAME "${EXEC_NAME}"
+		)
+		ADD_TEST(
+			NAME test_${EXEC_NAME}
+			WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
+			COMMAND ${EXEC_NAME}
+		)
+	ENDFOREACH()
+ENDIF()
 
 ################################################################################
 #
