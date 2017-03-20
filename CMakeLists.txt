@@ -136,7 +136,7 @@ OPTION( QPDUNES_WITH_BLAS
 )
 
 OPTION( QPDUNES_ACADOS
-	"Do not build qpDUNES examples and suppress output"
+	"Do not build qpDUNES examples"
 	ON
 )
 
