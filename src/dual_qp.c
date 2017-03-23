@@ -50,6 +50,8 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 			tNwtnFactorStart, tNwtnFactorEnd, tNwtnSolveStart, tNwtnSolveEnd,
 			tLineSearchStart, tLineSearchEnd;
 
+	real_t tExtraStart, tExtraEnd;
+
 	itLog_t* itLogPtr = &(qpData->log.itLog[0]);
 	itLogPtr->itNbr = 0;
 
@@ -63,7 +65,12 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 	/** (3b) measure timings */
 	#ifdef __MEASURE_TIMINGS__
 	if (qpData->options.logLevel >= QPDUNES_LOG_ITERATIONS) {
+		itLogPtr->tNwtnSetup = 0;
+		itLogPtr->tNwtnFactor = 0;
+		itLogPtr->tNwtnSolve = 0;
 		itLogPtr->tQP = 0;
+		itLogPtr->tLineSearch = 0;
+		itLogPtr->tExtra = 0;
 		itLogPtr->tIt = 0;
 	}
 	#endif
@@ -296,6 +303,8 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 		/** (5) regular log and display iteration */
 		/* get active set of local constraints */
 		/* - save old active set */
+		tExtraStart = getTime();
+
 		qpDUNES_getActSetChanges( 	qpData,
 									&(itLogPtr->nActConstr),
 									&(itLogPtr->nChgdConstr)
@@ -307,7 +316,7 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 		}
 		qpDUNES_printIteration(qpData, itLogPtr);
 
-
+		tExtraEnd = getTime();
 
 		/** (7) display timings */
 		#ifdef __MEASURE_TIMINGS__
@@ -316,11 +325,15 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 			qpData->log.itLog[(*itCntr)].tIt = tItEnd - tItStart;
 			qpData->log.itLog[(*itCntr)].tNwtnSetup = tNwtnSetupEnd
 					- tNwtnSetupStart;
+			qpData->log.itLog[(*itCntr)].tNwtnFactor = tNwtnFactorEnd
+					- tNwtnFactorStart;
 			qpData->log.itLog[(*itCntr)].tNwtnSolve = tNwtnSolveEnd
 					- tNwtnSolveStart;
 			qpData->log.itLog[(*itCntr)].tQP = tQpEnd - tQpStart;
 			qpData->log.itLog[(*itCntr)].tLineSearch = tLineSearchEnd
 					- tLineSearchStart;
+			qpData->log.itLog[(*itCntr)].tExtra = tExtraEnd
+					- tExtraStart;
 		}
 		if ((qpData->options.printIterationTiming == QPDUNES_TRUE)
 				&& (qpData->options.printLevel >= 2)) {
@@ -343,6 +356,10 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 			qpDUNES_printf("Line search:                    %7.3f ms (%5.2f%%)",
 					1e3 * (tLineSearchEnd - tLineSearchStart) / 1,
 					(tLineSearchEnd - tLineSearchStart) / (tItEnd - tItStart)
+							* 100);
+			qpDUNES_printf("Overhead (print+log):           %7.3f ms (%5.2f%%)",
+					1e3 * (tExtraEnd - tExtraStart) / 1,
+					(tExtraEnd - tExtraStart) / (tItEnd - tItStart)
 							* 100);
 			qpDUNES_printf("                               -----------");
 			qpDUNES_printf("Full iteration:                 %7.3f ms\n",

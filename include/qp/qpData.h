@@ -443,9 +443,11 @@ typedef struct
 	/* timings */
 	real_t tIt;
 	real_t tNwtnSetup;
+	real_t tNwtnFactor;
 	real_t tNwtnSolve;
 	real_t tQP;
 	real_t tLineSearch;
+	real_t tExtra;  // overhead of printing, logging, etc
 
 	/* statuses */
 	real_t gradNorm;
