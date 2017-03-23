@@ -44,8 +44,14 @@ examples/mhePrototype
 examples/nmpcPrototype
 examples/nmpcPrototype_b
 examples/chainMass_m3_N50_1stStep
+examples/doubleIntegrator_qp
+examples/example3_affine_mpc
+examples/spring_mass
 
 
 # FORCES stuff
 **/forcesMPC/*
 **/@CodeGen/*
+
+# VS Code stuff
+**.json

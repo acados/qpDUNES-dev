@@ -72,6 +72,8 @@ QPDUNES_EXES = \
 
 all: ${QPDUNES_EXES}
 
+spring_mass${EXE}: spring_mass.${OBJEXT} ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
+	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
 example1${EXE}: example1.${OBJEXT} ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
