@@ -1333,8 +1333,8 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
  	d_print_strmat(_NX_, _NX_, &sHessDiag[0], 0, 0);
 #endif
 	for (ii = 1; ii < _NI_; ii++) {
-		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);		
-		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);		
+		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);		
+		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);		
 #ifdef __DEBUG_BLASFEO__
 		printf("DIAGONAL BLOCK %d\n", ii);
 		d_print_strmat(_NX_, _NX_, &sHessDiag[ii], 0, 0);
