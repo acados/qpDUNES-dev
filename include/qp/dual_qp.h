@@ -29,6 +29,10 @@
  *	\date 2012
  */
 
+#ifdef __USE_BLASFEO__
+#include "/opt/blasfeo/include/blasfeo_target.h"
+#include "/opt/blasfeo/include/blasfeo_common.h"
+#endif
 
 #ifndef QP42_DUAL_QP_H
 #define QP42_DUAL_QP_H
@@ -101,6 +105,12 @@ return_t qpDUNES_setupCholDefaultHessian(	qpData_t* const qpData	);
 return_t qpDUNES_factorNewtonSystem(	qpData_t* const qpData,
 										xn2x_matrix_t* const cholHessian,
 										xn2x_matrix_t* const hessian,
+#ifdef __USE_BLASFEO__
+											struct d_strmat *sCholDiag,
+											struct d_strmat *sCholLow,
+											struct d_strmat *sHessDiag,
+											struct d_strmat *sHessLow,
+#endif
 										boolean_t* const isHessianRegularized,
 										int_t lastHessianDataChangeIdx
 										);
@@ -121,14 +131,18 @@ return_t qpDUNES_factorizeNewtonHessian(	qpData_t* const qpData,
 											boolean_t* isHessianRegularized
 											);
 
-
-return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
+return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData, 
 													xn2x_matrix_t* const cholHessian,
 													xn2x_matrix_t* const hessian,
+#ifdef __USE_BLASFEO__
+													struct d_strmat *sCholDiag,
+													struct d_strmat *sCholLow,
+													struct d_strmat *sHessDiag,
+													struct d_strmat *sHessLow,
+#endif
 													int_t lastActSetChangeIdx,
 													boolean_t* isHessianRegularized
 													);
-
 
 return_t qpDUNES_solveNewtonEquation(	qpData_t* const qpData,
 										xn_vector_t* const res,

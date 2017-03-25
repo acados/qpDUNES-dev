@@ -4,7 +4,10 @@
 
 #define INFTY 1.0e12
 
+// cd .. && make && cd examples/ && ./spring_mass
+
 // TODO(dimitris): Check that we always do Newton and NOT gradient steps (dual_qp.c, line 93)
+// TODO(dimitris): if options.nwtnHssnFacAlg ~= QPDUNES_NH_FAC_BAND_REVERSE + blasfeo, throw error
 
 int main( )
 {
@@ -13,7 +16,7 @@ int main( )
 	int i;
 	boolean_t isLTI;
 	unsigned int* nD = 0;  // no affine constraints
-	double *S = 0;
+	double *S = 0; 
 	
 	// logging
 	int nIter;

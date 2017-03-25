@@ -28,9 +28,72 @@
  *	\date 2012
  */
 
+#define __USE_BLASFEO__
+#define __DEBUG_BLASFEO__
 
 #include <qp/dual_qp.h>
 
+#ifdef __USE_BLASFEO__
+// NOTE: /opt is the default blasfeo install path
+#include "/opt/blasfeo/include/blasfeo_target.h"
+#include "/opt/blasfeo/include/blasfeo_common.h"
+#include "/opt/blasfeo/include/blasfeo_i_aux.h"
+#include "/opt/blasfeo/include/blasfeo_d_aux.h"
+#include "/opt/blasfeo/include/blasfeo_d_aux_ext_dep.h"
+#include "/opt/blasfeo/include/blasfeo_v_aux_ext_dep.h"
+#include "/opt/blasfeo/include/blasfeo_d_blas.h"
+
+int calculate_blasfeo_memory_size(int ni, int nx) {
+	int bytes = 0;
+	bytes += 2*ni*d_size_strmat(nx, nx);  // sHessDiag and sCholDiag
+	bytes += 2*(ni-1)*d_size_strmat(nx, nx);  // sHessLow and sCholLow
+	return bytes;
+}
+
+#ifdef __DEBUG_BLASFEO__
+
+#include <stdio.h>
+
+int write_double_vector_to_txt(double *vec, int n, char *filename) {
+    int i, c;
+    FILE *myFile;
+    myFile = fopen(filename, "wr");
+
+    if (myFile == NULL) {
+        printf("Error Reading File (%s)\n", filename);
+        return -1;
+    }
+
+    for (i = 0; i < n; i++) {
+        c = fprintf(myFile, "%.16e\n", vec[i]);
+    }
+
+    fclose(myFile);
+
+    return 0;
+}
+
+void convert_strmats_to_single_vec(int n, struct d_strmat sMat[], double *mat) {
+    int ind = 0;
+    int i;
+    for (i = 0; i < n; i++) {
+        d_cvt_strmat2mat(sMat[i].m, sMat[i].n, &sMat[i], 0, 0, &mat[ind], sMat[i].m);
+        ind += sMat[i].m*sMat[i].n;
+    }
+}
+
+#endif
+
+void convert_strvecs_to_single_vec(int n, struct d_strvec sv[], double *v) {
+    int ind = 0;
+    int i;
+    for (i = 0; i < n; i++) {
+        d_cvt_strvec2vec(sv[i].m, &sv[i], 0, &v[ind]);
+        ind += sv[i].m;
+    }
+}
+
+#endif
 
 /* ----------------------------------------------
  * main solve function
@@ -38,6 +101,34 @@
  >>>>>>                                           */
 return_t qpDUNES_solve(qpData_t* const qpData) {
 	uint_t kk, ii;
+
+	#ifdef __USE_BLASFEO__
+	int blasfeo_memory_size = calculate_blasfeo_memory_size(_NI_, _NX_);
+	void *tmp_blasfeo_ptr;
+	char *blasfeo_ptr;
+    v_zeros_align(&tmp_blasfeo_ptr, blasfeo_memory_size);
+    blasfeo_ptr = (char *) tmp_blasfeo_ptr;
+
+	struct d_strmat sHessDiag[_NI_];
+	struct d_strmat sHessLow[_NI_ - 1];
+	struct d_strmat sCholDiag[_NI_];
+	struct d_strmat sCholLow[_NI_ - 1];  // NOTE: THIS IS TRANSPOSED! 
+
+	d_create_strmat(_NX_, _NX_, &sHessDiag[0], blasfeo_ptr);
+	blasfeo_ptr += sHessDiag[0].memory_size;
+	d_create_strmat(_NX_, _NX_, &sCholDiag[0], blasfeo_ptr);
+	blasfeo_ptr += sCholDiag[0].memory_size;
+	for (ii = 1; ii < _NI_; ii++) {
+		d_create_strmat(_NX_, _NX_, &sHessDiag[ii], blasfeo_ptr);
+		blasfeo_ptr += sHessDiag[ii].memory_size;		
+		d_create_strmat(_NX_, _NX_, &sHessLow[ii-1], blasfeo_ptr);
+		blasfeo_ptr += sHessLow[ii-1].memory_size;
+		d_create_strmat(_NX_, _NX_, &sCholDiag[ii], blasfeo_ptr);
+		blasfeo_ptr += sCholDiag[ii].memory_size;		
+		d_create_strmat(_NX_, _NX_, &sCholLow[ii-1], blasfeo_ptr);
+		blasfeo_ptr += sCholLow[ii-1].memory_size;
+	}
+	#endif
 
 	int_t* itCntr = &(qpData->log.numIter);
 	*itCntr = 0;
@@ -175,7 +266,11 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 
 			/** (1Bb) factorize Newton system */
 			tNwtnFactorStart = getTime();
+			#ifdef __USE_BLASFEO__
+			statusFlag = qpDUNES_factorNewtonSystem(qpData, &(qpData->cholHessian), &(qpData->hessian), sCholDiag, sCholLow, sHessDiag, sHessLow, &(itLogPtr->isHessianRegularized), hessRefactorIdx);		// TODO! can we get a problem with on-the-fly regularization in partial refactorization? might only be partially reg.
+			#else
 			statusFlag = qpDUNES_factorNewtonSystem(qpData, &(qpData->cholHessian), &(qpData->hessian), &(itLogPtr->isHessianRegularized), hessRefactorIdx);		// TODO! can we get a problem with on-the-fly regularization in partial refactorization? might only be partially reg.
+			#endif
 			switch (statusFlag) {
 				case QPDUNES_OK:
 					break;
@@ -877,7 +972,12 @@ return_t qpDUNES_setupUnconstrainedNewtonSystem(	qpData_t* const qpData	)
 //	qpDUNES_printMatrixData( qpData->cholDefaultHessian.data, _NI_*_NX_, 2*_NX_, "H = ");
 
 
+#ifdef __USE_BLASFEO__
+	printf("ERROR: UNCONSTRAINED CASE NOT IMPLEMENTED WITH BLASFEO YET\n");
+	exit(66);
+#else
 	return qpDUNES_factorNewtonSystem(qpData, &(qpData->cholUnconstrainedHessian), &(qpData->unconstrainedHessian), &isHessianRegularized, -1);
+#endif
 }
 /*<<< END OF qpDUNES_setupNewtonSystem */
 
@@ -921,6 +1021,12 @@ return_t qpDUNES_computeNewtonGradient(	qpData_t* const qpData,
 return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 									 xn2x_matrix_t* cholHessian,
 									 xn2x_matrix_t* hessian,
+#ifdef __USE_BLASFEO__
+									struct d_strmat *sCholDiag,
+									struct d_strmat *sCholLow,
+									struct d_strmat *sHessDiag,
+									struct d_strmat *sHessLow,
+#endif
 								  	 boolean_t* const isHessianRegularized,
 								  	 int_t lastActSetChangeIdx
 								  	 )
@@ -938,7 +1044,11 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 			break;
 
 		case QPDUNES_NH_FAC_BAND_REVERSE:
+#ifdef __USE_BLASFEO__
+			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, sCholDiag, sCholLow, sHessDiag, sHessLow, lastActSetChangeIdx, isHessianRegularized );
+#else
 			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, lastActSetChangeIdx, isHessianRegularized );
+#endif
 			break;
 
 		default:
@@ -1052,7 +1162,11 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 			break;
 
 			case QPDUNES_NH_FAC_BAND_REVERSE:
+#ifdef __USE_BLASFEO__
+			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, sCholDiag, sCholLow, sHessDiag, sHessLow, _NI_+1, isHessianRegularized );	/* refactor full hessian */
+#else
 			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, _NI_+1, isHessianRegularized );	/* refactor full hessian */
+#endif
 			break;
 
 			default:
@@ -1192,9 +1306,16 @@ return_t qpDUNES_factorizeNewtonHessian( qpData_t* const qpData,
  * Bottom-up block-tridiagonal Cholesky for special storage format of Newton matrix
  *
  >>>>>>                                           */
+
 return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 													xn2x_matrix_t* const cholHessian,
 													xn2x_matrix_t* const hessian,
+#ifdef __USE_BLASFEO__
+													struct d_strmat *sCholDiag,
+													struct d_strmat *sCholLow,
+													struct d_strmat *sHessDiag,
+													struct d_strmat *sHessLow,
+#endif
 													int_t lastActSetChangeIdx, 			/**< index from where the reverse factorization is restarted */
 													boolean_t* isHessianRegularized
 													)
@@ -1202,8 +1323,26 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 	int_t jj, ii, kk, ll;
 	real_t sum;
 
-//	qpDUNES_printMatrixData( cholHessian->data, _NI_*_NX_,2*_NX_, "before" );
-//	qpDUNES_printMatrixData( hessian->data, _NI_*_NX_,2*_NX_, "before" );
+	// qpDUNES_printMatrixData( cholHessian->data, _NI_*_NX_,2*_NX_, "before" );
+	// qpDUNES_printMatrixData( hessian->data, _NI_*_NX_,2*_NX_, "before" );
+
+#ifdef __USE_BLASFEO__
+	d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[_NX_], 2*_NX_, &sHessDiag[0], 0, 0);
+#ifdef __DEBUG_BLASFEO__
+	printf("DIAGONAL BLOCK %d\n", 0);
+ 	d_print_strmat(_NX_, _NX_, &sHessDiag[0], 0, 0);
+#endif
+	for (ii = 1; ii < _NI_; ii++) {
+		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);		
+		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);		
+#ifdef __DEBUG_BLASFEO__
+		printf("DIAGONAL BLOCK %d\n", ii);
+		d_print_strmat(_NX_, _NX_, &sHessDiag[ii], 0, 0);
+		printf("UPPER DIAGONAL BLOCK %d\n", ii-1);
+		d_print_strmat(_NX_, _NX_, &sHessLow[ii-1], 0, 0);
+#endif
+	}
+#endif
 
 // TODO: switch to upper triangular matrix for higher cache efficiency!!
 
@@ -1302,8 +1441,40 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 		} /* next column */
 	} /* next block column */
 
-//	qpDUNES_printMatrixData( cholHessian->data, _NI_*_NX_,2*_NX_, "after" );
+	// qpDUNES_printMatrixData( cholHessian->data, _NI_*_NX_,2*_NX_, "after" );
 
+#ifdef __USE_BLASFEO__
+    for (kk = _NI_ - 1; kk > 0; kk--) {
+			// d_print_strmat(_NX_, _NX_, &sHessDiag[kk], 0, 0);
+
+            /* Cholesky factorization to calculate factor of current diagonal block */
+			// TODO(dimitris): Fix segfault when compiling with blas
+            dpotrf_l_libstr(_NX_, _NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
+
+            /* Matrix substitution to calculate transposed factor of parent block */
+            dtrsm_rltn_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk],
+                0, 0, &sHessLow[kk-1], 0, 0, &sCholLow[kk-1], 0, 0);
+
+            /* Symmetric matrix multiplication to update diagonal block of parent */
+            dsyrk_ln_libstr(_NX_, _NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0,
+                &sCholLow[kk-1], 0, 0, 1.0, &sHessDiag[kk-1], 0, 0, &sHessDiag[kk-1], 0, 0);
+    }
+
+    /* Calculate Cholesky factor of root block */
+    dpotrf_l_libstr(_NX_,  _NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
+
+#ifdef __DEBUG_BLASFEO__
+	double Choldiag[_NI_*_NX_*_NX_];
+	double CholUpp[_NI_*_NX_*_NX_];
+	convert_strmats_to_single_vec(_NI_, sCholDiag, Choldiag);
+	convert_strmats_to_single_vec(_NI_, sCholLow, CholUpp);
+	write_double_vector_to_txt(Choldiag, _NI_*_NX_*_NX_, "/Users/elusiv/Documents/MATLAB/CholDiag_blasfeo.txt");
+	write_double_vector_to_txt(CholUpp, _NI_*_NX_*_NX_, "/Users/elusiv/Documents/MATLAB/CholUpp_blasfeo.txt");
+	write_double_vector_to_txt(hessian->data, 2*_NI_*_NX_*_NX_, "/Users/elusiv/Documents/MATLAB/Hessian.txt");
+	write_double_vector_to_txt(cholHessian->data, 2*_NI_*_NX_*_NX_, "/Users/elusiv/Documents/MATLAB/CholHessian.txt");
+#endif
+	exit(1);
+#endif
 	return QPDUNES_OK;
 }
 /*<<< END OF qpDUNES_factorizeNewtonHessianBottomUp */

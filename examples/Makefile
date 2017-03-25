@@ -62,9 +62,11 @@ QPDUNES_EXES = \
 	mhePrototype${EXE}	\
 	nmpcPrototype${EXE}	\
 	nmpcPrototype_b${EXE}	\
-	chainMass_M3_N50_1stStep${EXE}
+	chainMass_M3_N50_1stStep${EXE} \
+	spring_mass${EXE}
 
 
+LIBS +=-L/opt/blasfeo/lib -lblasfeo
 
 ##
 ##	targets
@@ -73,10 +75,10 @@ QPDUNES_EXES = \
 all: ${QPDUNES_EXES}
 
 spring_mass${EXE}: spring_mass.${OBJEXT} ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
-	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
+	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS} 
 
 example1${EXE}: example1.${OBJEXT} ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
-	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
+	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS} 
 
 example1_ltv${EXE}: example1_ltv.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
