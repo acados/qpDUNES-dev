@@ -47,6 +47,7 @@ int calculate_blasfeo_memory_size(int ni, int nx) {
 	int bytes = 0;
 	bytes += 2*ni*d_size_strmat(nx, nx);  // sHessDiag and sCholDiag
 	bytes += 2*(ni-1)*d_size_strmat(nx, nx);  // sHessLow and sCholLow
+	bytes += 2*ni*d_size_strvec(nx);  // sgradient and sres
 	return bytes;
 }
 
@@ -102,7 +103,7 @@ void convert_strvecs_to_single_vec(int n, struct d_strvec sv[], double *v) {
 return_t qpDUNES_solve(qpData_t* const qpData) {
 	uint_t kk, ii;
 
-	#ifdef __USE_BLASFEO__
+#ifdef __USE_BLASFEO__
 	int blasfeo_memory_size = calculate_blasfeo_memory_size(_NI_, _NX_);
 	void *tmp_blasfeo_ptr;
 	char *blasfeo_ptr;
@@ -113,11 +114,17 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 	struct d_strmat sHessLow[_NI_ - 1];
 	struct d_strmat sCholDiag[_NI_];
 	struct d_strmat sCholLow[_NI_ - 1];  // NOTE: THIS IS TRANSPOSED! 
+	struct d_strvec sgradient[_NI_];
+	struct d_strvec sres[_NI_];
 
 	d_create_strmat(_NX_, _NX_, &sHessDiag[0], blasfeo_ptr);
 	blasfeo_ptr += sHessDiag[0].memory_size;
 	d_create_strmat(_NX_, _NX_, &sCholDiag[0], blasfeo_ptr);
 	blasfeo_ptr += sCholDiag[0].memory_size;
+	d_create_strvec(_NX_, &sgradient[0], blasfeo_ptr);
+	blasfeo_ptr += sgradient[0].memory_size;
+	d_create_strvec(_NX_, &sres[0], blasfeo_ptr);
+	blasfeo_ptr += sres[0].memory_size;
 	for (ii = 1; ii < _NI_; ii++) {
 		d_create_strmat(_NX_, _NX_, &sHessDiag[ii], blasfeo_ptr);
 		blasfeo_ptr += sHessDiag[ii].memory_size;		
@@ -127,8 +134,12 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 		blasfeo_ptr += sCholDiag[ii].memory_size;		
 		d_create_strmat(_NX_, _NX_, &sCholLow[ii-1], blasfeo_ptr);
 		blasfeo_ptr += sCholLow[ii-1].memory_size;
+		d_create_strvec(_NX_, &sgradient[ii], blasfeo_ptr);
+		blasfeo_ptr += sgradient[ii].memory_size;
+		d_create_strvec(_NX_, &sres[ii], blasfeo_ptr);
+		blasfeo_ptr += sres[ii].memory_size;
 	}
-	#endif
+#endif
 
 	int_t* itCntr = &(qpData->log.numIter);
 	*itCntr = 0;
@@ -203,7 +214,12 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 				break;
 
 			case QPDUNES_NH_FAC_BAND_REVERSE:
+#ifdef __USE_BLASFEO__
+				printf("ERROR: GRADIENT STEP NOT IMPLEMENTED WITH BLASFEO YET\n");
+				exit(66);
+#else
 				statusFlag = qpDUNES_solveNewtonEquationBottomUp(qpData, &(qpData->deltaLambda), &(qpData->cholUnconstrainedHessian), &(qpData->gradient));
+#endif
 				break;
 
 			default:
@@ -266,11 +282,11 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 
 			/** (1Bb) factorize Newton system */
 			tNwtnFactorStart = getTime();
-			#ifdef __USE_BLASFEO__
+#ifdef __USE_BLASFEO__
 			statusFlag = qpDUNES_factorNewtonSystem(qpData, &(qpData->cholHessian), &(qpData->hessian), sCholDiag, sCholLow, sHessDiag, sHessLow, &(itLogPtr->isHessianRegularized), hessRefactorIdx);		// TODO! can we get a problem with on-the-fly regularization in partial refactorization? might only be partially reg.
-			#else
+#else
 			statusFlag = qpDUNES_factorNewtonSystem(qpData, &(qpData->cholHessian), &(qpData->hessian), &(itLogPtr->isHessianRegularized), hessRefactorIdx);		// TODO! can we get a problem with on-the-fly regularization in partial refactorization? might only be partially reg.
-			#endif
+#endif
 			switch (statusFlag) {
 				case QPDUNES_OK:
 					break;
@@ -289,7 +305,11 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 				break;
 
 			case QPDUNES_NH_FAC_BAND_REVERSE:
+#ifdef __USE_BLASFEO__
+				statusFlag = qpDUNES_solveNewtonEquationBottomUp(qpData, &(qpData->deltaLambda), &(qpData->cholHessian), sCholDiag, sCholLow, sgradient, sres, &(qpData->gradient));
+#else
 				statusFlag = qpDUNES_solveNewtonEquationBottomUp(qpData, &(qpData->deltaLambda), &(qpData->cholHessian), &(qpData->gradient));
+#endif
 				break;
 
 			default:
@@ -1332,7 +1352,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 	printf("DIAGONAL BLOCK %d\n", 0);
  	d_print_strmat(_NX_, _NX_, &sHessDiag[0], 0, 0);
 #endif
-	for (ii = 1; ii < _NI_; ii++) {
+	for (ii = 1; ii < _NI_; ii++) { 
 		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);		
 		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);		
 #ifdef __DEBUG_BLASFEO__
@@ -1473,7 +1493,6 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 	write_double_vector_to_txt(hessian->data, 2*_NI_*_NX_*_NX_, "/Users/elusiv/Documents/MATLAB/Hessian.txt");
 	write_double_vector_to_txt(cholHessian->data, 2*_NI_*_NX_*_NX_, "/Users/elusiv/Documents/MATLAB/CholHessian.txt");
 #endif
-	exit(1);
 #endif
 	return QPDUNES_OK;
 }
@@ -1566,12 +1585,25 @@ return_t qpDUNES_solveNewtonEquation(	qpData_t* const qpData,
 return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 											xn_vector_t* const res,
 											const xn2x_matrix_t* const cholHessian, /**< lower triangular Newton Hessian factor */
+#ifdef __USE_BLASFEO__
+												struct d_strmat *sCholDiag,
+												struct d_strmat *sCholLow,
+												struct d_strvec *sgradient,
+												struct d_strvec *sres,
+#endif
 											const xn_vector_t* const gradient	)
 {
 	// TODO: switch to upper triangular matrix for higher cache efficiency!!
 	int_t ii, jj, kk;
 
 	real_t sum;
+
+
+#ifdef __USE_BLASFEO__
+	for (ii = 0; ii < _NI_; ii++) {
+		d_cvt_vec2strvec(_NX_, &gradient->data[ii*_NX_], &sgradient[ii], 0);
+	}
+#endif
 
 //	qpDUNES_printMatrixDataToFile( res->data, _NI_*_NX_, 1, "dLambda_normal", "" );
 
@@ -1602,6 +1634,11 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 		}
 	}
 
+#ifdef __DEBUG_BLASFEO__
+	// qpDUNES_printMatrixData( res->data, _NI_*_NX_, 1, "interm. result (qpdunes)", "" );
+	write_double_vector_to_txt(res->data, _NI_*_NX_, "/Users/elusiv/Documents/MATLAB/tmp.txt");
+#endif
+
 	/* solve L*res = x */
 	for (kk = 0; kk < _NI_; ++kk) /* go by block rows top down */
 	{
@@ -1629,7 +1666,48 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 		}
 	}
 
-//	qpDUNES_printMatrixDataToFile( res->data, _NI_*_NX_, 1, "dLambda_reverse", "" );
+	// qpDUNES_printMatrixDataToFile( res->data, _NI_*_NX_, 1, "dLambda_reverse", "" );
+
+#ifdef __USE_BLASFEO__
+
+	/* Backward substitution (stores in sres, destroys sgradient) */
+	for (kk = _NI_ - 1; kk > 0; kk--) {
+		/* Vector substitution */
+		dtrsv_lnn_libstr(_NX_, &sCholDiag[kk], 0, 0, &sgradient[kk], 0, &sres[kk], 0);
+
+		/* Update */
+		dgemv_n_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk], 0, 1.0, 
+			&sgradient[kk-1], 0, &sgradient[kk-1], 0);
+    }
+    dtrsv_lnn_libstr(_NX_, &sCholDiag[0], 0, 0, &sgradient[0], 0, &sres[0], 0);
+
+#ifdef __DEBUG_BLASFEO__
+	double tmp_blasfeo[_NI_*_NX_]; // NOTE: won't coincide with qpDUNES one
+	convert_strvecs_to_single_vec(_NI_, sres, tmp_blasfeo);
+	// qpDUNES_print/MatrixData( tmp_blasfeo, _NI_*_NX_, 1, "interm. result (blasfeo)", "" );
+	write_double_vector_to_txt(tmp_blasfeo, _NI_*_NX_, "/Users/elusiv/Documents/MATLAB/tmp_blasfeo.txt");
+#endif
+
+	/* Forward substitution (stores in sres) */
+    dtrsv_ltn_libstr(_NX_, &sCholDiag[0], 0, 0, &sres[0], 0, &sres[0], 0);
+
+    for (kk = 1; kk < _NI_; kk++) {
+		dgemv_t_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk-1], 0, 1.0, 
+			&sres[kk], 0, &sres[kk], 0);
+
+		dtrsv_ltn_libstr(_NX_, &sCholDiag[kk], 0, 0, &sres[kk], 0, &sres[kk], 0);
+    }
+
+#ifdef __DEBUG_BLASFEO__
+	double res_blasfeo[_NI_*_NX_];
+	convert_strvecs_to_single_vec(_NI_, sres, res_blasfeo);
+
+	qpDUNES_printMatrixData( res->data, _NI_*_NX_, 1, "resut (qpdunes)", "" );
+	qpDUNES_printMatrixData( res_blasfeo, _NI_*_NX_, 1, "result (blasfeo)", "" );
+	write_double_vector_to_txt(res_blasfeo, _NI_*_NX_, "/Users/elusiv/Documents/MATLAB/res_blasfeo.txt");
+	write_double_vector_to_txt(res->data, _NI_*_NX_, "/Users/elusiv/Documents/MATLAB/res.txt");
+#endif
+#endif
 
 	return QPDUNES_OK;
 }

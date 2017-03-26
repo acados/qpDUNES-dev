@@ -153,6 +153,12 @@ return_t qpDUNES_solveNewtonEquation(	qpData_t* const qpData,
 return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 												xn_vector_t* const res,
 												const xn2x_matrix_t* const cholHessian,	/**< lower triangular Newton Hessian factor */
+#ifdef __USE_BLASFEO__
+												struct d_strmat *sCholDiag,
+												struct d_strmat *sCholLow,
+												struct d_strvec *sgradient,
+												struct d_strvec *sres,
+#endif
 												const xn_vector_t* const gradient
 												);
 
