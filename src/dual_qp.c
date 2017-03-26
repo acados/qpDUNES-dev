@@ -1076,6 +1076,7 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 			return QPDUNES_ERR_INVALID_ARGUMENT;
 	}
 
+#if __USE_BLASFEO__ == 0
 	/* check maximum diagonal element */
 	if (statusFlag == QPDUNES_OK) {
 		for (kk = 0; kk < _NI_; ++kk) {
@@ -1086,8 +1087,16 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 			}
 		}
 	}
-#if __USE_BLASFEO__
-	minDiagElem = 100;  // TODO(dimitris): get rid of this hack that avoids regularization
+#else
+	real_t val;
+	for (kk = 0; kk < _NI_; kk++) {
+		for (ii = 0; ii < _NX_; ii++) {
+			val = dmatex1_libstr(&sCholDiag[kk], ii, ii);
+			if (minDiagElem > val ) {
+				minDiagElem = val;
+			}
+		}
+	}
 #endif
 
 	#ifdef __DEBUG__
@@ -1187,7 +1196,10 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 
 			case QPDUNES_NH_FAC_BAND_REVERSE:
 #if __USE_BLASFEO__ == 1
-			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, sCholDiag, sCholLow, sHessDiag, sHessLow, _NI_+1, isHessianRegularized );	/* refactor full hessian */
+			// TODO(dimitris): Find a case that enters here and check results 
+			// statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, sCholDiag, sCholLow, sHessDiag, sHessLow, _NI_+1, isHessianRegularized );	/* refactor full hessian */
+			printf("ERROR! REFACTORIZATION NEEDED, NOT TESTED WITH BLASFEO YET\n");
+			exit(1);
 #else
 			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, _NI_+1, isHessianRegularized );	/* refactor full hessian */
 #endif
@@ -1491,11 +1503,11 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
                 &sCholLow[kk-1], 0, 0, 1.0, &sHessDiag[kk-1], 0, 0, &sHessDiag[kk-1], 0, 0);
     }
 
+	// TODO(dimitris): Check if we need an if for the last factorization in this case
 	if (blockIdxStart == 0) {
-		printf("CHECK THIS CASE\n");
+		printf("ERROR! CASE WITH blockIdxStart = 0 NOT TESTED YET WITH BLASFEO!\n");
 		exit(1);
 	}
-	// TODO(dimitris): unless no active set change at all
     /* Calculate Cholesky factor of root block */
     dpotrf_l_libstr(_NX_,  _NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
 
