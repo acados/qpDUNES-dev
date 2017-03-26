@@ -29,7 +29,7 @@
  *	\date 2012
  */
 
-#ifdef __USE_BLASFEO__
+#if __USE_BLASFEO__ == 1
 #include "/opt/blasfeo/include/blasfeo_target.h"
 #include "/opt/blasfeo/include/blasfeo_common.h"
 #endif
@@ -105,7 +105,7 @@ return_t qpDUNES_setupCholDefaultHessian(	qpData_t* const qpData	);
 return_t qpDUNES_factorNewtonSystem(	qpData_t* const qpData,
 										xn2x_matrix_t* const cholHessian,
 										xn2x_matrix_t* const hessian,
-#ifdef __USE_BLASFEO__
+#if __USE_BLASFEO__ == 1
 											struct d_strmat *sCholDiag,
 											struct d_strmat *sCholLow,
 											struct d_strmat *sHessDiag,
@@ -134,7 +134,7 @@ return_t qpDUNES_factorizeNewtonHessian(	qpData_t* const qpData,
 return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData, 
 													xn2x_matrix_t* const cholHessian,
 													xn2x_matrix_t* const hessian,
-#ifdef __USE_BLASFEO__
+#if __USE_BLASFEO__ == 1
 													struct d_strmat *sCholDiag,
 													struct d_strmat *sCholLow,
 													struct d_strmat *sHessDiag,
@@ -153,7 +153,7 @@ return_t qpDUNES_solveNewtonEquation(	qpData_t* const qpData,
 return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 												xn_vector_t* const res,
 												const xn2x_matrix_t* const cholHessian,	/**< lower triangular Newton Hessian factor */
-#ifdef __USE_BLASFEO__
+#if __USE_BLASFEO__ == 1
 												struct d_strmat *sCholDiag,
 												struct d_strmat *sCholLow,
 												struct d_strvec *sgradient,
