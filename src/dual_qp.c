@@ -31,6 +31,7 @@
 #define __USE_BLASFEO__ 1
 #define __DEBUG_BLASFEO__ 0
 
+#include <stdio.h> 
 #include <qp/dual_qp.h>
 
 #if __USE_BLASFEO__ == 1
@@ -48,12 +49,31 @@ int calculate_blasfeo_memory_size(int ni, int nx) {
 	bytes += 2*ni*d_size_strmat(nx, nx);  // sHessDiag and sCholDiag
 	bytes += 2*(ni-1)*d_size_strmat(nx, nx);  // sHessLow and sCholLow
 	bytes += 2*ni*d_size_strvec(nx);  // sgradient and sres
-	return bytes;
+	return bytes; 
 }
 
-#if __DEBUG_BLASFEO__ == 1
 
-#include <stdio.h>
+void convert_strmats_to_single_vec(int n, struct d_strmat sMat[], double *mat) {
+    int ind = 0;
+    int i;
+    for (i = 0; i < n; i++) {
+        d_cvt_strmat2mat(sMat[i].m, sMat[i].n, &sMat[i], 0, 0, &mat[ind], sMat[i].m);
+        ind += sMat[i].m*sMat[i].n;
+    }
+}
+
+
+void convert_strvecs_to_single_vec(int n, struct d_strvec sv[], double *v) {
+    int ind = 0;
+    int i;
+    for (i = 0; i < n; i++) {
+        d_cvt_strvec2vec(sv[i].m, &sv[i], 0, &v[ind]);
+        ind += sv[i].m;
+    }
+}
+
+#endif
+
 
 int write_double_vector_to_txt(double *vec, int n, char *filename) {
     int i, c;
@@ -74,28 +94,6 @@ int write_double_vector_to_txt(double *vec, int n, char *filename) {
     return 0;
 }
 
-void convert_strmats_to_single_vec(int n, struct d_strmat sMat[], double *mat) {
-    int ind = 0;
-    int i;
-    for (i = 0; i < n; i++) {
-        d_cvt_strmat2mat(sMat[i].m, sMat[i].n, &sMat[i], 0, 0, &mat[ind], sMat[i].m);
-        ind += sMat[i].m*sMat[i].n;
-    }
-}
-
-#endif
-
-void convert_strvecs_to_single_vec(int n, struct d_strvec sv[], double *v) {
-    int ind = 0;
-    int i;
-    for (i = 0; i < n; i++) {
-        d_cvt_strvec2vec(sv[i].m, &sv[i], 0, &v[ind]);
-        ind += sv[i].m;
-    }
-}
-
-#endif
-
 /* ----------------------------------------------
  * main solve function
  * 
@@ -113,7 +111,7 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 	struct d_strmat sHessDiag[_NI_];
 	struct d_strmat sHessLow[_NI_ - 1];
 	struct d_strmat sCholDiag[_NI_];
-	struct d_strmat sCholLow[_NI_ - 1];  // NOTE: THIS IS TRANSPOSED! 
+	struct d_strmat sCholLow[_NI_ - 1];  // NOTE: THIS IS TRANSPOSED!
 	struct d_strvec sgradient[_NI_];
 	struct d_strvec sres[_NI_];
 
@@ -182,6 +180,7 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 	/*  ----------------------------------- */
 	for ((*itCntr) = 1; (*itCntr) <= qpData->options.maxIter; ++(*itCntr)) {
 
+		// printf("ITERATION %d\n", (*itCntr));
 		//qpDUNES_printMatrixData( qpData->lambda.data, _NI_*_NX_, 1, "lambda is currently:" );
 
 		#ifdef __MEASURE_TIMINGS__
@@ -215,7 +214,7 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 
 			case QPDUNES_NH_FAC_BAND_REVERSE:
 #if __USE_BLASFEO__ == 1
-				printf("ERROR: GRADIENT STEP NOT IMPLEMENTED WITH BLASFEO YET\n");
+				printf("ERROR! GRADIENT STEP NOT IMPLEMENTED WITH BLASFEO YET\n");
 				exit(66);
 #else
 				statusFlag = qpDUNES_solveNewtonEquationBottomUp(qpData, &(qpData->deltaLambda), &(qpData->cholUnconstrainedHessian), &(qpData->gradient));
@@ -521,6 +520,10 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 		qpDUNES_printError(qpData, __FILE__, __LINE__, "Exceeded iteration limit. QP could not be solved." );
 		return QPDUNES_ERR_ITERATION_LIMIT_REACHED;
 	}
+
+#if __USE_BLASFEO__ == 1
+	    v_free_align(tmp_blasfeo_ptr);
+#endif
 }
 /*<<< END OF qpDUNES_solve */
 
@@ -993,8 +996,8 @@ return_t qpDUNES_setupUnconstrainedNewtonSystem(	qpData_t* const qpData	)
 
 
 #if __USE_BLASFEO__ == 1
-	printf("ERROR: UNCONSTRAINED CASE NOT IMPLEMENTED WITH BLASFEO YET\n");
-	exit(66);
+	printf("ERROR! UNCONSTRAINED CASE NOT IMPLEMENTED WITH BLASFEO YET\n");
+	exit(1);
 #else
 	return qpDUNES_factorNewtonSystem(qpData, &(qpData->cholUnconstrainedHessian), &(qpData->unconstrainedHessian), &isHessianRegularized, -1);
 #endif
@@ -1076,8 +1079,8 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 			return QPDUNES_ERR_INVALID_ARGUMENT;
 	}
 
-#if __USE_BLASFEO__ == 0
 	/* check maximum diagonal element */
+#if __USE_BLASFEO__ == 0
 	if (statusFlag == QPDUNES_OK) {
 		for (kk = 0; kk < _NI_; ++kk) {
 			for (ii = 0; ii < _NX_; ++ii) {
@@ -1089,11 +1092,13 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 	}
 #else
 	real_t val;
+	int posval;
 	for (kk = 0; kk < _NI_; kk++) {
 		for (ii = 0; ii < _NX_; ii++) {
 			val = dmatex1_libstr(&sCholDiag[kk], ii, ii);
 			if (minDiagElem > val ) {
 				minDiagElem = val;
+				posval = kk;
 			}
 		}
 	}
@@ -1195,13 +1200,15 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 			break;
 
 			case QPDUNES_NH_FAC_BAND_REVERSE:
+			/* refactor full hessian */
 #if __USE_BLASFEO__ == 1
-			// TODO(dimitris): Find a case that enters here and check results 
 			// statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, sCholDiag, sCholLow, sHessDiag, sHessLow, _NI_+1, isHessianRegularized );	/* refactor full hessian */
-			printf("ERROR! REFACTORIZATION NEEDED, NOT TESTED WITH BLASFEO YET\n");
+			printf("ERROR! REFACTORIZATION NEEDED, NOT TESTED WITH BLASFEO YET (minDiagElem = %f, at kk = %d)\n",minDiagElem, posval);
 			exit(1);
 #else
-			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, _NI_+1, isHessianRegularized );	/* refactor full hessian */
+			printf("ERROR! REFACTORIZATION NEEDED, NOT TESTED WITH BLASFEO YET\n");
+			exit(1);
+			statusFlag = qpDUNES_factorizeNewtonHessianBottomUp( qpData, cholHessian, hessian, _NI_+1, isHessianRegularized );
 #endif
 			break;
 
@@ -1368,19 +1375,9 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 	//	int_t blockIdxStart = _NI_-1;
 #if __USE_BLASFEO__ == 1
 	d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[_NX_], 2*_NX_, &sHessDiag[0], 0, 0);
-#if __DEBUG_BLASFEO__ == 1
-	printf("DIAGONAL BLOCK %d\n", 0);
- 	d_print_strmat(_NX_, _NX_, &sHessDiag[0], 0, 0);
-#endif
 	for (ii = 1; ii <= blockIdxStart; ii++) {
 		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);		
 		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);		
-#if __DEBUG_BLASFEO__ == 1
-		printf("DIAGONAL BLOCK %d\n", ii);
-		d_print_strmat(_NX_, _NX_, &sHessDiag[ii], 0, 0);
-		printf("UPPER DIAGONAL BLOCK %d\n", ii-1);
-		d_print_strmat(_NX_, _NX_, &sHessLow[ii-1], 0, 0);
-#endif
 	}
 #endif
 
@@ -1490,11 +1487,16 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 		&sHessDiag[blockIdxStart], 0, 0);		
 	}
     for (kk = blockIdxStart; kk > 0; kk--) { 
+
+			// dmatse_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk], 0, 0);
+
             /* Cholesky factorization to calculate factor of current diagonal block */
-			// TODO(dimitris): Fix segfault when compiling with blas
             dpotrf_l_libstr(_NX_, _NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
 
-            /* Matrix substitution to calculate transposed factor of parent block */
+			// d_print_strmat(12, 12, &sHessDiag[kk], 0, 0);
+			// d_print_strmat(12, 12, &sCholDiag[kk], 0, 0);
+
+			/* Matrix substitution to calculate transposed factor of parent block */
             dtrsm_rltn_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk],
                 0, 0, &sHessLow[kk-1], 0, 0, &sCholLow[kk-1], 0, 0);
 
@@ -1503,11 +1505,6 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
                 &sCholLow[kk-1], 0, 0, 1.0, &sHessDiag[kk-1], 0, 0, &sHessDiag[kk-1], 0, 0);
     }
 
-	// TODO(dimitris): Check if we need an if for the last factorization in this case
-	if (blockIdxStart == 0) {
-		printf("ERROR! CASE WITH blockIdxStart = 0 NOT TESTED YET WITH BLASFEO!\n");
-		exit(1);
-	}
     /* Calculate Cholesky factor of root block */
     dpotrf_l_libstr(_NX_,  _NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
 

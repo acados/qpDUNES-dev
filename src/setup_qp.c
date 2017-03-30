@@ -29,6 +29,7 @@
  *	\date 2012
  */
 
+#define __SKIP_HEADERS_IN_CLIPPING_MODE__  // NOTE: deactivate header for benchmarking (only works for clipping!)
 
 #include <qp/dual_qp.h>
 
@@ -187,9 +188,9 @@ return_t qpDUNES_setup(	qpData_t* const qpData,
 //	qpDUNES_indicateDataChange( qpData );
 	/* this is done when data is passed */
 
-
+#ifndef __SKIP_HEADERS_IN_CLIPPING_MODE__
 	qpDUNES_printHeader( qpData );
-
+#endif
 
 	return QPDUNES_OK;
 }
@@ -251,9 +252,10 @@ interval_t* qpDUNES_allocInterval(	qpData_t* const qpData,
 	/* get memory for qpOASES QP solver */
 	/* TODO: do this only if needed later on in code generated / static memory version */
 	/* TODO: utilize special bound version of qpOASES later on for full Hessians, but box constraints */
+#ifndef __SKIP_HEADERS_IN_CLIPPING_MODE__
 	interval->qpSolverQpoases.qpoasesObject = qpOASES_constructor( qpData, nV, nD );
 	interval->qpSolverQpoases.qFullStep.data  = (real_t*)calloc( nV,sizeof(real_t) );
-
+#endif
 	/* get memory for objecte function parameterization */
 	interval->parametricObjFctn_alpha.data = (real_t*)calloc( qpData->options.maxNumQpoasesIterations + 2 , sizeof(real_t) );
 	interval->parametricObjFctn_f.data = (real_t*)calloc( qpData->options.maxNumQpoasesIterations + 2 , sizeof(real_t) );

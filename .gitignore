@@ -4,6 +4,7 @@
 *.dylib
 *.mexmaci64
 *.m~
+*.DS_Store
 
 
 # latex stuff
@@ -55,3 +56,7 @@ examples/spring_mass
 
 # VS Code stuff
 **.json
+
+# Logging
+**/spring_mass_log/*.txt
+**/spring_mass_log/*.mat

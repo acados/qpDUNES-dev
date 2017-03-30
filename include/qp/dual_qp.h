@@ -54,6 +54,7 @@
 #include <qp/setup_qp.h>
 #include <qp/qpdunes_utils.h>
 
+int write_double_vector_to_txt(double *vec, int n, char *filename);
 
 return_t qpDUNES_solve(	qpData_t* const qpData
 						);

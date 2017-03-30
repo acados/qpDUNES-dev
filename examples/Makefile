@@ -2,7 +2,7 @@
 ##	This file is part of qp42.
 ##
 ##	qp42 -- An Implementation of the Online Active Set Strategy.
-##	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al. 
+##	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al.
 ##	All rights reserved.
 ##
 ##	qp42 is free software; you can redistribute it and/or
@@ -67,6 +67,8 @@ QPDUNES_EXES = \
 
 
 LIBS +=-L/opt/blasfeo/lib -lblasfeo
+LIBS +=-L/opt/openblas -lopenblas
+# LIBS +=-L/opt/netlib -lblas -llapack
 
 ##
 ##	targets
@@ -75,50 +77,50 @@ LIBS +=-L/opt/blasfeo/lib -lblasfeo
 all: ${QPDUNES_EXES}
 
 spring_mass${EXE}: spring_mass.${OBJEXT} ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
-	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS} 
+	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
 example1${EXE}: example1.${OBJEXT} ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
-	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS} 
+	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
 example1_ltv${EXE}: example1_ltv.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 example2_affine${EXE}: example2_affine.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 example3_affine_mpc${EXE}: example3_affine_mpc.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a ../externals/qpOASES-3.0beta/bin/libqpOASES.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
 wang2010${EXE}: wang2010.${OBJEXT} ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 singleIntegrator${EXE}: singleIntegrator.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 singleIntegrator_b${EXE}: singleIntegrator_b.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 singleIntegrator_sc${EXE}: singleIntegrator_sc.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 singleIntegrator_d${EXE}: singleIntegrator_d.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
 doubleIntegrator${EXE}: doubleIntegrator.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 doubleIntegrator_qp${EXE}: doubleIntegrator_qp.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
 doubleIntegrator_mpc${EXE}: doubleIntegrator_mpc.${OBJEXT} ../interfaces/mpc/libmpcdunes.a ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${MPCDUNES_LIB} ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 mhePrototype${EXE}: mhePrototype.${OBJEXT} ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 nmpcPrototype${EXE}: nmpcPrototype.${OBJEXT} ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
-	
+
 nmpcPrototype_b${EXE}: nmpcPrototype_b.${OBJEXT} ../src/libqpdunes.a
 	${CPP} ${DEF_TARGET} ${CPPFLAGS} $< ${QPDUNES_LIB} ${QPOASES_LIB} ${LIBS}
 
