@@ -180,7 +180,6 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 	/*  ----------------------------------- */
 	for ((*itCntr) = 1; (*itCntr) <= qpData->options.maxIter; ++(*itCntr)) {
 
-		// printf("ITERATION %d\n", (*itCntr));
 		//qpDUNES_printMatrixData( qpData->lambda.data, _NI_*_NX_, 1, "lambda is currently:" );
 
 		#ifdef __MEASURE_TIMINGS__
@@ -1487,14 +1486,8 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 		&sHessDiag[blockIdxStart], 0, 0);		
 	}
     for (kk = blockIdxStart; kk > 0; kk--) { 
-
-			// dmatse_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk], 0, 0);
-
             /* Cholesky factorization to calculate factor of current diagonal block */
             dpotrf_l_libstr(_NX_, _NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
-
-			// d_print_strmat(12, 12, &sHessDiag[kk], 0, 0);
-			// d_print_strmat(12, 12, &sCholDiag[kk], 0, 0);
 
 			/* Matrix substitution to calculate transposed factor of parent block */
             dtrsm_rltn_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk],

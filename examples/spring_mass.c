@@ -9,6 +9,11 @@
 #include "./spring_mass_include/spring_mass_data_8.c"
 #include "./spring_mass_include/spring_mass_data_9.c"
 #include "./spring_mass_include/spring_mass_data_10.c"
+#include "./spring_mass_include/spring_mass_data_11.c"
+#include "./spring_mass_include/spring_mass_data_12.c"
+#include "./spring_mass_include/spring_mass_data_13.c"
+#include "./spring_mass_include/spring_mass_data_14.c"
+#include "./spring_mass_include/spring_mass_data_15.c"
 
 #define MAXITER 100
 
@@ -24,13 +29,18 @@ void assign_data(int NM, double **A, double **B, double **c, double **Q, double 
 void write_timings_to_txt_files(int NM, int nIter, double *tNwtnSetup, double *tNwtnFactor, 
 	double *tNwtnSolve, double *tQP, double *tLineSearch, double *tExtra, double *tIter);
 
+void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *tNwtnSolve, 
+	double *tQP, double *tLineSearch, double *tExtra, double *tIter);
+
 int main( )
 {
 	int N = 20;
 	int NX, NU;
-	int NM[] = {3, 4, 5, 6, 7, 8, 9, 10};  // NOTE: in ascending order
+	int NM[] = {3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};  // NOTE: number of masses, simulations in ascending order
 	int nexp = sizeof(NM)/sizeof(int);
 	int NRUNS = 100;
+	int nPrint = 5;
+	double *tmp = (double *)malloc(nPrint*sizeof(double));  // store part of optimal solution for validation
 	int i, j;
 	boolean_t isLTI;
 
@@ -67,7 +77,7 @@ int main( )
 
 	qpOptions_t qpOptions = qpDUNES_setupDefaultOptions();
 	qpOptions.maxIter = MAXITER;
-	qpOptions.printLevel = 1; // 0 = no output, 1 = only errors and success, 2 = additionally iterations and warnings,  3 = debug information, 4 = active set info?
+	qpOptions.printLevel = 0; // 0 = no output, 1 = only errors and success, 2 = additionally iterations and warnings,  3 = debug information, 4 = active set info?
 	qpOptions.printIterationTiming = 0;
 	qpOptions.logLevel = QPDUNES_LOG_ITERATIONS; // QPDUNES_LOG_OFF, QPDUNES_LOG_ITERATIONS, QPDUNES_LOG_ALL_DATA
 	// ...
@@ -78,11 +88,9 @@ int main( )
 
 		for (j = 0; j < NRUNS; j++) {
 		
-			// TODO(dimitris): supress prints of qpDUNES_allocInterval inside here
 			qpDUNES_setup(&qpData, N, NX, NU, nD, &qpOptions);  // passing 0 in the last argument sets the default QP options
 
 			qpDUNES_setupSimpleBoundedInterval(&qpData, qpData.intervals[0], Q, R, S, A, B, c, x0, x0, uLow, uUpp);
-		//   printf("H_TYPE = %d\n", qpData.intervals[0]->H.sparsityType);
 			for (i = 1; i < N; ++i) {
 				qpDUNES_setupSimpleBoundedInterval(&qpData, qpData.intervals[i], Q, R, S, A, B, c, xLow, xUpp, uLow, uUpp);
 			}
@@ -91,11 +99,6 @@ int main( )
 			qpDUNES_setupAllLocalQPs(&qpData, isLTI=QPDUNES_TRUE);  // determine local QP solvers and set up auxiliary data
 
 			qpDUNES_solve(&qpData);
-			
-			// for (i = 0; i < N; ++i) {
-			// 	qpDUNES_printMatrixData(qpData.intervals[i]->z.data, 1, NX+NU, "z[%d]:", i);
-			// }
-			// qpDUNES_printMatrixData(qpData.intervals[N]->z.data, 1, NX, "z[%d]:", i);
 			
 			nIter = qpData.log.numIter;
 			// check if cpu time is better than the current min one
@@ -119,27 +122,17 @@ int main( )
 				}
 			}
 			
-			qpDUNES_cleanup(&qpData);
-			printf("end of run %d/%d (%d iterations) \n", j+1, NRUNS, nIter);
-		}
+			if ( j == NRUNS-1 ) {
+				for (i = 0; i < nPrint; i++)
+					tmp[i] = qpData.intervals[N]->z.data[i];
+			}
 
-		for (i = 1; i < nIter; i++) {
-			qpDUNES_printf("\nTimings Iteration %d:", i);
-			qpDUNES_printf("Setup of Newton system:         %7.3f ms (%5.2f%%)",
-					1e3 * (tNwtnSetup[i]) / 1, (tNwtnSetup[i]) / (tIter[i]) * 100);
-			qpDUNES_printf("Factorization of Newton system: %7.3f ms (%5.2f%%)",
-					1e3 * (tNwtnFactor[i]) / 1, (tNwtnFactor[i]) / (tIter[i]) * 100);
-			qpDUNES_printf("Backsolve of newton system:     %7.3f ms (%5.2f%%)",
-					1e3 * (tNwtnSolve[i]) / 1, (tNwtnSolve[i]) / (tIter[i]) * 100);
-			qpDUNES_printf("QP solution:                    %7.3f ms (%5.2f%%)",
-					1e3 * (tQP[i]) / 1, (tQP[i]) / (tIter[i]) * 100);
-			qpDUNES_printf("Line search:                    %7.3f ms (%5.2f%%)",
-					1e3 * (tLineSearch[i]) / 1, (tLineSearch[i]) / (tIter[i]) * 100);
-			qpDUNES_printf("Overhead (print+log):           %7.3f ms (%5.2f%%)",
-					1e3 * (tExtra[i]) / 1, (tExtra[i]) / (tIter[i]) * 100);
-			qpDUNES_printf("                               -----------");
-			qpDUNES_printf("Full iteration:                 %7.3f ms\n",
-					1e3 * (tIter[i]) / 1);
+			qpDUNES_cleanup(&qpData);
+			// printf("end of run %d/%d (%d iterations) \n", j+1, NRUNS, nIter);
+		}  // end NRUNS
+
+		if (0) {
+			print_timings (nIter, tNwtnSetup, tNwtnFactor, tNwtnSolve, tQP, tLineSearch, tExtra, tIter); 
 		}
 
 		write_timings_to_txt_files(NM[iexp], nIter, tNwtnSetup, tNwtnFactor, tNwtnSolve, tQP, tLineSearch, tExtra, tIter);
@@ -150,12 +143,19 @@ int main( )
 			totTime += tIter[i];
 			newtonTime += tNwtnFactor[i] + tNwtnSolve[i];
 		}
+		printf("==============================================================\n");
 		printf("Total time for %d masses:  %7.3f ms\n", NM[iexp], 1000*totTime);
 		printf("Newton time for %d masses: %7.3f ms\n", NM[iexp], 1000*newtonTime);
-
+		printf("qpDUNES executed %d times and converged in %d iterations (last run)\n", NRUNS, nIter);
+		printf("%d elements of optimal solution at stage %d (last run):\n", nPrint, N);
+		for (i = 0; i < nPrint; i++)
+			printf("%7.5f ", tmp[i]);
+		printf("\n");
 	}
 
+	printf("==============================================================\n");
 	printf("spring-mass example done.\n");
+	free(tmp);
 
 	return 0;
 }
@@ -297,6 +297,111 @@ void assign_data(int NM, double **A, double **B, double **c, double **Q, double 
 			*x0 = x0_10;
 			*NU = sizeof(B_10)/sizeof(x0_10);
 			break;
+		case 11:
+			*A = A_11;
+			*B = B_11;
+			*c = c_11;
+			*Q = Q_11;
+			*P = P_11;
+			*R = R_11;
+			*xLow = xLow_11;
+			*xUpp = xUpp_11;
+			*xNLow = xNLow_11;
+			*xNUpp = xNUpp_11;
+			*uLow = uLow_11;
+			*uUpp = uUpp_11;
+			*x0 = x0_11;
+			*NU = sizeof(B_11)/sizeof(x0_11);
+			break;
+		case 12:
+			*A = A_12;
+			*B = B_12;
+			*c = c_12;
+			*Q = Q_12;
+			*P = P_12;
+			*R = R_12;
+			*xLow = xLow_12;
+			*xUpp = xUpp_12;
+			*xNLow = xNLow_12;
+			*xNUpp = xNUpp_12;
+			*uLow = uLow_12;
+			*uUpp = uUpp_12;
+			*x0 = x0_12;
+			*NU = sizeof(B_12)/sizeof(x0_12);
+			break;
+		case 13:
+			*A = A_13;
+			*B = B_13;
+			*c = c_13;
+			*Q = Q_13;
+			*P = P_13;
+			*R = R_13;
+			*xLow = xLow_13;
+			*xUpp = xUpp_13;
+			*xNLow = xNLow_13;
+			*xNUpp = xNUpp_13;
+			*uLow = uLow_13;
+			*uUpp = uUpp_13;
+			*x0 = x0_13;
+			*NU = sizeof(B_13)/sizeof(x0_13);
+			break;
+		case 14:
+			*A = A_14;
+			*B = B_14;
+			*c = c_14;
+			*Q = Q_14;
+			*P = P_14;
+			*R = R_14;
+			*xLow = xLow_14;
+			*xUpp = xUpp_14;
+			*xNLow = xNLow_14;
+			*xNUpp = xNUpp_14;
+			*uLow = uLow_14;
+			*uUpp = uUpp_14;
+			*x0 = x0_14;
+			*NU = sizeof(B_14)/sizeof(x0_14);
+			break;
+		case 15:
+			*A = A_15;
+			*B = B_15;
+			*c = c_15;
+			*Q = Q_15;
+			*P = P_15;
+			*R = R_15;
+			*xLow = xLow_15;
+			*xUpp = xUpp_15;
+			*xNLow = xNLow_15;
+			*xNUpp = xNUpp_15;
+			*uLow = uLow_15;
+			*uUpp = uUpp_15;
+			*x0 = x0_15;
+			*NU = sizeof(B_15)/sizeof(x0_15);
+			break;
+	}
+}
+
+
+void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *tNwtnSolve, 
+	double *tQP, double *tLineSearch, double *tExtra, double *tIter) {
+	
+	int i;
+	for (i = 1; i < nIter; i++) {
+		qpDUNES_printf("\nTimings Iteration %d:", i);
+		qpDUNES_printf("Setup of Newton system:         %7.3f ms (%5.2f%%)",
+				1e3 * (tNwtnSetup[i]) / 1, (tNwtnSetup[i]) / (tIter[i]) * 100);
+		qpDUNES_printf("Factorization of Newton system: %7.3f ms (%5.2f%%)",
+				1e3 * (tNwtnFactor[i]) / 1, (tNwtnFactor[i]) / (tIter[i]) * 100);
+		qpDUNES_printf("Backsolve of newton system:     %7.3f ms (%5.2f%%)",
+				1e3 * (tNwtnSolve[i]) / 1, (tNwtnSolve[i]) / (tIter[i]) * 100);
+		qpDUNES_printf("QP solution:                    %7.3f ms (%5.2f%%)",
+				1e3 * (tQP[i]) / 1, (tQP[i]) / (tIter[i]) * 100);
+		qpDUNES_printf("Line search:                    %7.3f ms (%5.2f%%)",
+				1e3 * (tLineSearch[i]) / 1, (tLineSearch[i]) / (tIter[i]) * 100);
+		qpDUNES_printf("Overhead (print+log):           %7.3f ms (%5.2f%%)",
+				1e3 * (tExtra[i]) / 1, (tExtra[i]) / (tIter[i]) * 100);
+		qpDUNES_printf("                               -----------");
+		qpDUNES_printf("Full iteration:                 %7.3f ms\n",
+				1e3 * (tIter[i]) / 1);
 	}
 }
 
