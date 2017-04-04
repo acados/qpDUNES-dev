@@ -34,6 +34,8 @@
 
 #include <qpOASES/Utils.hpp>
 
+// NOTE: Commented out as they interfere with blasfeo+blas
+#if 0
 
 extern "C" void dgemm_ ( const char *TRANSA, const char *TRANSB,
 		const unsigned long *M, const unsigned long *N, const unsigned long *K,
@@ -143,3 +145,4 @@ extern "C" void sgemm_ ( const char *TRANSA, const char *TRANSB,
 						C[j+(*LDC)*k] += *ALPHA * A[i+(*LDA)*j] * B[i+(*LDB)*k];
 }
 
+#endif

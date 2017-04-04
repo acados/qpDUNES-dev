@@ -34,6 +34,9 @@
 
 #include <qpOASES/Utils.hpp>
 
+// NOTE: Commented out as they interfere with blasfeo+blas
+
+#if 0
 
 extern "C" void dpotrf_(	const char *uplo, const unsigned long *_n, double *a,
 							const unsigned long *_lda, long *info
@@ -117,4 +120,5 @@ extern "C" void spotrf_(	const char *uplo, const unsigned long *_n, float *a,
 	if (info != 0)
 		*info = 0;
 }
+#endif
 
