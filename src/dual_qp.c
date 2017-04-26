@@ -2,7 +2,7 @@
  *	This file is part of qpDUNES.
  *
  *	qpDUNES -- A DUal NEwton Strategy for convex quadratic programming.
- *	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al. 
+ *	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al.
  *	All rights reserved.
  *
  *	qpDUNES is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@
 #define __USE_BLASFEO__ 1
 #define __DEBUG_BLASFEO__ 0
 
-#include <stdio.h> 
+#include <stdio.h>
 #include <qp/dual_qp.h>
 
 #if __USE_BLASFEO__ == 1
@@ -49,7 +49,7 @@ int calculate_blasfeo_memory_size(int ni, int nx) {
 	bytes += 2*ni*d_size_strmat(nx, nx);  // sHessDiag and sCholDiag
 	bytes += 2*(ni-1)*d_size_strmat(nx, nx);  // sHessLow and sCholLow
 	bytes += 2*ni*d_size_strvec(nx);  // sgradient and sres
-	return bytes; 
+	return bytes;
 }
 
 
@@ -96,7 +96,7 @@ int write_double_vector_to_txt(double *vec, int n, char *filename) {
 
 /* ----------------------------------------------
  * main solve function
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_solve(qpData_t* const qpData) {
 	uint_t kk, ii;
@@ -125,7 +125,7 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 	blasfeo_ptr += sres[0].memory_size;
 	for (ii = 1; ii < _NI_; ii++) {
 		d_create_strmat(_NX_, _NX_, &sHessDiag[ii], blasfeo_ptr);
-		blasfeo_ptr += sHessDiag[ii].memory_size;		
+		blasfeo_ptr += sHessDiag[ii].memory_size;
 		d_create_strmat(_NX_, _NX_, &sHessLow[ii-1], blasfeo_ptr);
 		blasfeo_ptr += sHessLow[ii-1].memory_size;
 		d_create_strmat(_NX_, _NX_, &sCholDiag[ii], blasfeo_ptr);
@@ -656,7 +656,7 @@ return_t qpDUNES_updateAllLocalQPs(	qpData_t* const qpData,
 
 /* ----------------------------------------------
  * solve local QPs for a multiplier guess lambda
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_solveAllLocalQPs(	qpData_t* const qpData,
 									const xn_vector_t* const lambda,
@@ -738,7 +738,7 @@ return_t qpDUNES_solveLocalQP(	qpData_t* const qpData,
 
 /* ----------------------------------------------
  * ...
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_setupNewtonSystem(	qpData_t* const qpData,
 									int_t* const lastHessianDataChangeIdx
@@ -1094,7 +1094,7 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 	int posval;
 	for (kk = 0; kk < _NI_; kk++) {
 		for (ii = 0; ii < _NX_; ii++) {
-			val = dmatex1_libstr(&sCholDiag[kk], ii, ii);
+			val = dgeex1_libstr(&sCholDiag[kk], ii, ii);
 			if (minDiagElem > val ) {
 				minDiagElem = val;
 				posval = kk;
@@ -1234,7 +1234,7 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 
 /* ----------------------------------------------
  * Special block tridiagonal Cholesky for special storage format of Newton matrix
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_factorizeNewtonHessian( qpData_t* const qpData,
 									  xn2x_matrix_t* const cholHessian,
@@ -1265,7 +1265,7 @@ return_t qpDUNES_factorizeNewtonHessian( qpData_t* const qpData,
 					sum -= accCholHessian(kk,-1,jj,ll) * accCholHessian(kk,-1,jj,ll);
 				}
 			}
-			
+
 
 			/* 2) check for too small diagonal elements */
 			if((qpData->options.regType == QPDUNES_REG_SINGULAR_DIRECTIONS) &&	/* Add regularization on too small values already in factorization */
@@ -1299,17 +1299,17 @@ return_t qpDUNES_factorizeNewtonHessian( qpData_t* const qpData,
 				}
 			}
 			accCholHessian(kk,0,jj,jj) = sqrt( sum );
-			
+
 
 			/* 3) write remainder of jj-th column: */		// TODO: think about how we can avoid this column-wise access and postpone until the respective element is needed */
 			/*  - this diagonal block */
 			for( ii=(jj+1); ii<_NX_; ++ii )
 			{
 				sum = accHessian(kk,0,ii,jj);
-				
+
 				/* subtract forepart of this row times forepart of jj-th row */
 				/*  - diagonal block */
-				for( ll = 0; ll < jj; ++ll ) {	
+				for( ll = 0; ll < jj; ++ll ) {
 					sum -= accCholHessian(kk,0,ii,ll) * accCholHessian(kk,0,jj,ll);
 				}
 				/*  - subdiagonal block */
@@ -1326,12 +1326,12 @@ return_t qpDUNES_factorizeNewtonHessian( qpData_t* const qpData,
 				for( ii=0; ii<_NX_; ++ii )
 				{
 					sum = accHessian(kk+1,-1,ii,jj);
-					
+
 					/* subtract forepart of this row times forepart of jj-th row (only this block is non-zero) */
-					for( ll = 0; ll < jj; ++ll ) {	
+					for( ll = 0; ll < jj; ++ll ) {
 						sum -= accCholHessian(kk+1,-1,ii,ll) * accCholHessian(kk,0,jj,ll);
 					}
-					
+
 					accCholHessian(kk+1,-1,ii,jj) = sum / accCholHessian(kk,0,jj,jj);
 				}
 			}
@@ -1375,8 +1375,8 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 #if __USE_BLASFEO__ == 1
 	d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[_NX_], 2*_NX_, &sHessDiag[0], 0, 0);
 	for (ii = 1; ii <= blockIdxStart; ii++) {
-		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);		
-		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);		
+		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);
+		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);
 	}
 #endif
 
@@ -1388,7 +1388,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 //	qpDUNES_printf( "Restarting reverse Cholesky factorization at block %d of %d", blockIdxStart, _NI_-1 );
 
 #if __USE_BLASFEO__ == 0 || ( __USE_BLASFEO__ == 1 && __DEBUG_BLASFEO__ == 1 )
-	
+
 	/* go by block columns */
 	for (kk = blockIdxStart; kk >= 0; --kk) {
 		/* go by in-block columns */
@@ -1481,11 +1481,11 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 #if __USE_BLASFEO__ == 1
 	if (blockIdxStart < _NI_ - 1) {
 		/* Update from previous iteration */
-		dsyrk_ln_libstr(_NX_, _NX_, _NX_, -1.0, &sCholLow[blockIdxStart], 0, 0, 
-		&sCholLow[blockIdxStart], 0, 0, 1.0, &sHessDiag[blockIdxStart], 0, 0, 
-		&sHessDiag[blockIdxStart], 0, 0);		
+		dsyrk_ln_libstr(_NX_, _NX_, _NX_, -1.0, &sCholLow[blockIdxStart], 0, 0,
+		&sCholLow[blockIdxStart], 0, 0, 1.0, &sHessDiag[blockIdxStart], 0, 0,
+		&sHessDiag[blockIdxStart], 0, 0);
 	}
-    for (kk = blockIdxStart; kk > 0; kk--) { 
+    for (kk = blockIdxStart; kk > 0; kk--) {
             /* Cholesky factorization to calculate factor of current diagonal block */
             dpotrf_l_libstr(_NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
 
@@ -1520,7 +1520,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 
 /* ----------------------------------------------
  * special backsolve for block tridiagonal Newton matrix
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_solveNewtonEquation(	qpData_t* const qpData,
 									xn_vector_t* const res,
@@ -1692,7 +1692,7 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 		dtrsv_lnn_libstr(_NX_, &sCholDiag[kk], 0, 0, &sgradient[kk], 0, &sres[kk], 0);
 
 		/* Update */
-		dgemv_n_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk], 0, 1.0, 
+		dgemv_n_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk], 0, 1.0,
 			&sgradient[kk-1], 0, &sgradient[kk-1], 0);
     }
     dtrsv_lnn_libstr(_NX_, &sCholDiag[0], 0, 0, &sgradient[0], 0, &sres[0], 0);
@@ -1702,7 +1702,7 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
     dtrsv_ltn_libstr(_NX_, &sCholDiag[0], 0, 0, &sres[0], 0, &sres[0], 0);
 
     for (kk = 1; kk < _NI_; kk++) {
-		dgemv_t_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk-1], 0, 1.0, 
+		dgemv_t_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk-1], 0, 1.0,
 			&sres[kk], 0, &sres[kk], 0);
 
 		dtrsv_ltn_libstr(_NX_, &sCholDiag[kk], 0, 0, &sres[kk], 0, &sres[kk], 0);
@@ -1786,7 +1786,7 @@ return_t qpDUNES_multiplyNewtonHessianVector(	qpData_t* const qpData,
 
 /* ----------------------------------------------
  * ...
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_determineStepLength(	qpData_t* const qpData,
 										xn_vector_t* const lambda,
@@ -2802,7 +2802,7 @@ return_t qpDUNES_infeasibilityCheck(	qpData_t* qpData
 
 /* ----------------------------------------------
  * ...
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_getPrimalSol(const qpData_t* const qpData, real_t* const z) {
 	int_t kk;
@@ -3071,4 +3071,3 @@ void qpDUNES_printIteration(	qpData_t* qpData,
 /*
  *	end of file
  */
-
