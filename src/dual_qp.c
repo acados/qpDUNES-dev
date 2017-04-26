@@ -1487,7 +1487,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 	}
     for (kk = blockIdxStart; kk > 0; kk--) { 
             /* Cholesky factorization to calculate factor of current diagonal block */
-            dpotrf_l_libstr(_NX_, _NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
+            dpotrf_l_libstr(_NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
 
 			/* Matrix substitution to calculate transposed factor of parent block */
             dtrsm_rltn_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk],
@@ -1499,7 +1499,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
     }
 
     /* Calculate Cholesky factor of root block */
-    dpotrf_l_libstr(_NX_,  _NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
+    dpotrf_l_libstr(_NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
 
 #if __DEBUG_BLASFEO__ == 1
 	double Choldiag[_NI_*_NX_*_NX_];
