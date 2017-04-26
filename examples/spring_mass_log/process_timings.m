@@ -1,5 +1,14 @@
 
-%% initialize 
+%% initialize
+
+% instructions:
+% - compile blasfeo with desired LA
+% - set __USE_BLASFEO_FLAG__ in qpDUNES
+% - make qpDUNES
+% - run C code (results stored in txt files)
+% - update LA field below {'BLASFEO_HP', 'BLASFEO_RF', 'BLASFEO_WR_NETLIB', 'BLASFEO_WR_OPENBLAS','QPDUNES'}
+% - update NM (as in C code)
+% - run script to convert timings to mat files
 
 clear variables; close all; clc;
 
@@ -7,7 +16,7 @@ clear variables; close all; clc;
 MAXIT = 20;
 
 % choose experiments (number of masses)
-NM = [3 4 5 6 7 8 9 10];
+NM = [3 4 5 6 7 8 9 10 11 12 13 14 15];
 
 % choose linear algebra used in experiments:
 LA = 'UNKNOWN';
