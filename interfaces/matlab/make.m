@@ -30,6 +30,7 @@
 %	Date:      2012
 %
 
+USE_BLASFEO = 1;
 
 %%
 % consistency check
@@ -43,19 +44,31 @@ end
 QPDUNESPATH = '../../';
 QPOASESPATH = [ QPDUNESPATH , '/externals/qpOASES-3.0beta/'];
 
+if USE_BLASFEO
+    BLASFEOPATH = '/opt/blasfeo/';
+end
+
 IFLAGS  = [ '-I.',' ', ...
             '-I',QPDUNESPATH,'include',' ', ...
             '-I',QPDUNESPATH,'externals/qpOASES-3.0beta/include',' ', ...
-            '-I',QPDUNESPATH,'interfaces/mpc',' ' ];
+            '-I',QPDUNESPATH,'interfaces/mpc',' '];
+
+if USE_BLASFEO
+    IFLAGS = [IFLAGS '-I', BLASFEOPATH, 'include',' '];
+end
 
 OMPFLAGS = [ '', ' ', ...   %-openmp
 			 ];
 
 if ( ispc == 0 )
 %  	CPPFLAGS  = [ IFLAGS, OMPFLAGS, '-largeArrayDims -D__cpluplus -D__MATLAB__ -cxx -O -D__NO_COPYRIGHT__ -DLINUX CFLAGS=''$CFLAGS -std=c99 -fPIC''', ' ' ]; %% -D__SUPPRESSANYOUTPUT__
-	CPPFLAGS  = [ IFLAGS, '-largeArrayDims -D__DEBUG__ -D__cplusplus -D__MATLAB__ -cxx -O -D__NO_COPYRIGHT__ -DLINUX CFLAGS=''$CFLAGS -fPIC -std=c99''', ' ' ]; %% -D__DEBUG__ -D__SUPPRESSANYOUTPUT__
+	CPPFLAGS  = [ IFLAGS, '-largeArrayDims -D__DEBUG__ -D__cplusplus -D__MATLAB__ -cxx -O -D__NO_COPYRIGHT__ -DLINUX CFLAGS=''$CFLAGS -fPIC -std=c99''', ' ']; %% -D__DEBUG__ -D__SUPPRESSANYOUTPUT__
 else
 	CPPFLAGS  = [ IFLAGS, '-largeArrayDims -D__cplusplus -D__MATLAB__ -cxx -O -DWIN32', ' ' ]; %% -D__NO_COPYRIGHT__ -D__SUPPRESSANYOUTPUT__
+end
+
+if USE_BLASFEO
+   CPPFLAGS = [CPPFLAGS '-L/opt/blasfeo/lib -lblasfeo -L/opt/netlib -lblas -llapack', ' ']; 
 end
 
 QPDUNES_OBJECTS = [	QPDUNESPATH, 'src/stage_qp_solver_clipping.c ',...

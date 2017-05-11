@@ -15,6 +15,8 @@
 #include "./spring_mass_include/spring_mass_data_14.c"
 #include "./spring_mass_include/spring_mass_data_15.c"
 
+#include "/opt/blasfeo/include/blasfeo_target.h"
+
 #define MAXITER 100
 
 // cd .. && make && cd examples/ && ./spring_mass
@@ -157,6 +159,15 @@ int main( )
 	printf("spring-mass example done.\n");
 	free(tmp);
 
+	#ifdef LA_REFERENCE
+	printf("BLASFEO compiled with LA=REFERENCE\n");
+	#endif
+	#ifdef LA_HIGH_PERFORMANCE
+	printf("BLASFEO compiled with LA=HIGH_PERFORMANCE\n");
+	#endif
+	#ifdef LA_BLAS
+	printf("BLASFEO compiled with LA=BLAS\n");
+	#endif
 	return 0;
 }
 

@@ -67,8 +67,8 @@ QPDUNES_EXES = \
 
 
 LIBS +=-L/opt/blasfeo/lib -lblasfeo
-LIBS +=-L/opt/openblas -lopenblas
-# LIBS +=-L/opt/netlib -lblas -llapack
+# LIBS +=-L/opt/openblas -lopenblas
+LIBS +=-L/opt/netlib -lblas -llapack
 
 ##
 ##	targets

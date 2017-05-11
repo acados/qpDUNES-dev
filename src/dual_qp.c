@@ -1481,7 +1481,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 #if __USE_BLASFEO__ == 1
 	if (blockIdxStart < _NI_ - 1) {
 		/* Update from previous iteration */
-		dsyrk_ln_libstr(_NX_, _NX_, _NX_, -1.0, &sCholLow[blockIdxStart], 0, 0,
+		dsyrk_ln_libstr(_NX_, _NX_, -1.0, &sCholLow[blockIdxStart], 0, 0,
 		&sCholLow[blockIdxStart], 0, 0, 1.0, &sHessDiag[blockIdxStart], 0, 0,
 		&sHessDiag[blockIdxStart], 0, 0);
 	}
@@ -1494,7 +1494,7 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
                 0, 0, &sHessLow[kk-1], 0, 0, &sCholLow[kk-1], 0, 0);
 
             /* Symmetric matrix multiplication to update diagonal block of parent */
-            dsyrk_ln_libstr(_NX_, _NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0,
+            dsyrk_ln_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0,
                 &sCholLow[kk-1], 0, 0, 1.0, &sHessDiag[kk-1], 0, 0, &sHessDiag[kk-1], 0, 0);
     }
 
