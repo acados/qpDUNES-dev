@@ -74,6 +74,23 @@ void convert_strvecs_to_single_vec(int n, struct d_strvec sv[], double *v) {
 
 #endif
 
+void print_la_option( ) {
+	#if __USE_BLASFEO__ == 1
+	#ifdef LA_REFERENCE
+	printf("***** BLASFEO compiled with LA=REFERENCE\n");
+	#endif
+	#ifdef LA_HIGH_PERFORMANCE
+	printf("***** BLASFEO compiled with LA=HIGH_PERFORMANCE\n");
+	#endif
+	#ifdef LA_BLAS
+	printf("***** BLASFEO compiled with LA=BLAS\n");
+	#endif
+	#else
+	printf("***** BLASFEO is disabled\n");
+	#endif
+	printf("\n");
+}
+
 
 int write_double_vector_to_txt(double *vec, int n, char *filename) {
     int i, c;
@@ -480,6 +497,9 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
 			qpDUNES_printf("Begin:  %.3f ms\n",
 					1e3 * (tNwtnSetupStart - tItStart) / 1);
 			qpDUNES_printf("End:  %.3f ms\n", 1e3 * (tItEnd - tLineSearchEnd) / 1);
+
+			print_la_option ( );
+
 		}
 		#endif
 	}	/* end of main qpDUNES loop */

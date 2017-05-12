@@ -24,14 +24,14 @@
 // TODO(dimitris): Check that we always do Newton and NOT gradient steps (dual_qp.c, line 93)
 // TODO(dimitris): if options.nwtnHssnFacAlg ~= QPDUNES_NH_FAC_BAND_REVERSE + blasfeo, throw error
 
-void assign_data(int NM, double **A, double **B, double **c, double **Q, double **P, double **R, 
-	double **xLow, double **xUpp, double **xNLow, double **xNUpp, double **uLow, double **uUpp, 
+void assign_data(int NM, double **A, double **B, double **c, double **Q, double **P, double **R,
+	double **xLow, double **xUpp, double **xNLow, double **xNUpp, double **uLow, double **uUpp,
 	double **x0, int *NX, int *NU);
 
-void write_timings_to_txt_files(int NM, int nIter, double *tNwtnSetup, double *tNwtnFactor, 
+void write_timings_to_txt_files(int NM, int nIter, double *tNwtnSetup, double *tNwtnFactor,
 	double *tNwtnSolve, double *tQP, double *tLineSearch, double *tExtra, double *tIter);
 
-void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *tNwtnSolve, 
+void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *tNwtnSolve,
 	double *tQP, double *tLineSearch, double *tExtra, double *tIter);
 
 int main( )
@@ -59,7 +59,7 @@ int main( )
 	double *uLow;
 	double *uUpp;
 	double *x0;
-	double *S = 0; 
+	double *S = 0;
 	unsigned int* nD = 0;  // no affine constraints
 
 	// logging
@@ -89,7 +89,7 @@ int main( )
 		assign_data(NM[iexp], &A, &B, &c, &Q, &P, &R, &xLow, &xUpp, &xNLow, &xNUpp, &uLow, &uUpp, &x0, &NX, &NU);
 
 		for (j = 0; j < NRUNS; j++) {
-		
+
 			qpDUNES_setup(&qpData, N, NX, NU, nD, &qpOptions);  // passing 0 in the last argument sets the default QP options
 
 			qpDUNES_setupSimpleBoundedInterval(&qpData, qpData.intervals[0], Q, R, S, A, B, c, x0, x0, uLow, uUpp);
@@ -101,7 +101,7 @@ int main( )
 			qpDUNES_setupAllLocalQPs(&qpData, isLTI=QPDUNES_TRUE);  // determine local QP solvers and set up auxiliary data
 
 			qpDUNES_solve(&qpData);
-			
+
 			nIter = qpData.log.numIter;
 			// check if cpu time is better than the current min one
 			totTime = 0;
@@ -110,7 +110,7 @@ int main( )
 			}
 			if (j == 0) minTotTime = totTime;
 
-			if (minTotTime >= totTime) { 
+			if (minTotTime >= totTime) {
 				minTotTime = totTime;
 				// if yes, store detailed timings
 				for (i = 1; i < nIter; i++) {
@@ -123,7 +123,7 @@ int main( )
 					tIter[i] = qpData.log.itLog[i].tIt;
 				}
 			}
-			
+
 			if ( j == NRUNS-1 ) {
 				for (i = 0; i < nPrint; i++)
 					tmp[i] = qpData.intervals[N]->z.data[i];
@@ -134,7 +134,7 @@ int main( )
 		}  // end NRUNS
 
 		if (0) {
-			print_timings (nIter, tNwtnSetup, tNwtnFactor, tNwtnSolve, tQP, tLineSearch, tExtra, tIter); 
+			print_timings (nIter, tNwtnSetup, tNwtnFactor, tNwtnSolve, tQP, tLineSearch, tExtra, tIter);
 		}
 
 		write_timings_to_txt_files(NM[iexp], nIter, tNwtnSetup, tNwtnFactor, tNwtnSolve, tQP, tLineSearch, tExtra, tIter);
@@ -159,25 +159,16 @@ int main( )
 	printf("spring-mass example done.\n");
 	free(tmp);
 
-	#ifdef LA_REFERENCE
-	printf("BLASFEO compiled with LA=REFERENCE\n");
-	#endif
-	#ifdef LA_HIGH_PERFORMANCE
-	printf("BLASFEO compiled with LA=HIGH_PERFORMANCE\n");
-	#endif
-	#ifdef LA_BLAS
-	printf("BLASFEO compiled with LA=BLAS\n");
-	#endif
 	return 0;
 }
 
 
-void assign_data(int NM, double **A, double **B, double **c, double **Q, double **P, double **R, 
-	double **xLow, double **xUpp, double **xNLow, double **xNUpp, double **uLow, double **uUpp, 
+void assign_data(int NM, double **A, double **B, double **c, double **Q, double **P, double **R,
+	double **xLow, double **xUpp, double **xNLow, double **xNUpp, double **uLow, double **uUpp,
 	double **x0, int *NX, int *NU) {
 
 	*NX = 2*NM;
-	
+
 	switch (NM) {
 
 		case 3:
@@ -392,9 +383,9 @@ void assign_data(int NM, double **A, double **B, double **c, double **Q, double 
 }
 
 
-void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *tNwtnSolve, 
+void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *tNwtnSolve,
 	double *tQP, double *tLineSearch, double *tExtra, double *tIter) {
-	
+
 	int i;
 	for (i = 1; i < nIter; i++) {
 		qpDUNES_printf("\nTimings Iteration %d:", i);
@@ -417,7 +408,7 @@ void print_timings (int nIter, double *tNwtnSetup, double *tNwtnFactor, double *
 }
 
 
-void write_timings_to_txt_files(int NM, int nIter, double *tNwtnSetup, double *tNwtnFactor, 
+void write_timings_to_txt_files(int NM, int nIter, double *tNwtnSetup, double *tNwtnFactor,
 	double *tNwtnSolve, double *tQP, double *tLineSearch, double *tExtra, double *tIter) {
 		char fname[256];
 		char fpath[] = "spring_mass_log/";
