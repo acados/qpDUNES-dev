@@ -146,7 +146,7 @@ OPTION( QPDUNES_ACADOS
 #
 ################################################################################
 
-SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC -Wall -Wextra -pedantic -Wshadow -g -finline-functions -std=c99" )
+SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -fPIC -Wall -Wextra -pedantic -Wshadow -g -finline-functions -std=c99" )
 
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D__DEBUG__")
 
@@ -200,20 +200,6 @@ ENABLE_TESTING()
 
 ################################################################################
 #
-# Include directories
-#
-################################################################################
-
-INCLUDE_DIRECTORIES(
-	.
-	./include
-	./include/qp
-	./interfaces
-	./interfaces/mpc
-)
-
-################################################################################
-#
 # Sources and headers
 #
 ################################################################################
@@ -249,12 +235,6 @@ IF ( NOT QPDUNES_SIMPLE_BOUNDS_ONLY )
 		SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -finline-functions -fPIC" )
 	ENDIF()
 	SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLINUX -D__cplusplus -D__NO_COPYRIGHT__" )
-
-   	INCLUDE_DIRECTORIES(
-        # qpOASES include paths
-		./externals/qpOASES-3.0beta
-		./externals/qpOASES-3.0beta/include
-	)
 
 	SET ( qpDUNES_HEADERS ${qpDUNES_HEADERS}
 		${CMAKE_CURRENT_SOURCE_DIR}/include/qp/stage_qp_solver_qpoases.hpp
@@ -325,6 +305,7 @@ ENDIF()
 #
 # Build the qpDUNES stand-alone library
 #
+
 ADD_LIBRARY(
 	qpdunes STATIC
 
@@ -332,6 +313,20 @@ ADD_LIBRARY(
 	${qpDUNES_HEADERS}
 	${qpDUNES_SOURCES}
 )
+
+TARGET_INCLUDE_DIRECTORIES(qpdunes
+	PUBLIC
+		include
+		include/qp
+		interfaces
+		interfaces/mpc)
+
+IF( NOT QPDUNES_SIMPLE_BOUNDS_ONLY )
+	TARGET_INCLUDE_DIRECTORIES(qpdunes
+		PUBLIC
+			externals/qpOASES-3.0beta
+			externals/qpOASES-3.0beta/include)
+ENDIF()
 
 TARGET_LINK_LIBRARIES( qpdunes m )
 
