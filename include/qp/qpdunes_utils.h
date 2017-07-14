@@ -36,7 +36,9 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#ifdef __MEASURE_TIMINGS__
 #include <sys/time.h>
+#endif
 #include <qp/types.h>
 #if !defined(__STATIC_MEMORY__)
 	#include <qp/qpData.h>
@@ -518,10 +520,10 @@ void qpDUNES_printStrArgs(	const char* const string,
  *	\version 1.0beta
  *	\date 2012
  */
-void qpDUNES_printStrArgsToFile(	FILE* filePtr,
-								const char* const string,
-								...
-								);
+//void qpDUNES_printStrArgsToFile(	FILE* filePtr,
+//								const char* const string,
+//								...
+//								);
 
 
 /**
@@ -533,9 +535,9 @@ void qpDUNES_printStrArgsToFile(	FILE* filePtr,
  *	\version 1.0beta
  *	\date 2012
  */
-void qpDUNES_printStrArgsList(	const char* const string,
-							va_list printArgs 
-							);
+//void qpDUNES_printStrArgsList(	const char* const string,
+//							va_list printArgs
+//							);
 
 
 /** 
@@ -547,10 +549,10 @@ void qpDUNES_printStrArgsList(	const char* const string,
  *	\version 1.0beta
  *	\date 2012
  */
-void qpDUNES_printStrArgsListToFile(	FILE* filePtr,
-									const char* const string,
-									va_list printArgs
-									);
+//void qpDUNES_printStrArgsListToFile(	FILE* filePtr,
+//									const char* const string,
+//									va_list printArgs
+//									);
 
 
 /**

@@ -146,7 +146,9 @@ OPTION( QPDUNES_ACADOS
 #
 ################################################################################
 
-SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -fPIC -Wall -Wextra -pedantic -Wshadow -g -finline-functions -std=c99" )
+if(CMAKE_C_COMPILER_ID MATCHES "GCC" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+	SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -fPIC -Wall -Wextra -pedantic -Wshadow -g -finline-functions -std=c99" )
+endif()
 
 SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D__DEBUG__")
 
@@ -229,12 +231,13 @@ SET( qpDUNES_SOURCES
 IF ( NOT QPDUNES_SIMPLE_BOUNDS_ONLY )
 
    	ENABLE_LANGUAGE( CXX )
-
-   	SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshadow -finline-functions -fPIC" )
+	if(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+	    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wshadow -finline-functions -fPIC" )
+	endif()
 	IF ( QPDUNES_ACADOS )
-		SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -finline-functions -fPIC" )
+	    SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -finline-functions -fPIC" )
 	ENDIF()
-	SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLINUX -D__cplusplus -D__NO_COPYRIGHT__" )
+	SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DLINUX -D__NO_COPYRIGHT__" )
 
 	SET ( qpDUNES_HEADERS ${qpDUNES_HEADERS}
 		${CMAKE_CURRENT_SOURCE_DIR}/include/qp/stage_qp_solver_qpoases.hpp

@@ -53,8 +53,8 @@
 #define __SUPPRESS_ALL_WARNINGS__			/* do not display warnings */
 #undef __SUPPRESS_ALL_WARNINGS__
 
-#define __MEASURE_TIMINGS__					/* measure computation times */
-//#undef __MEASURE_TIMINGS__
+//#define __MEASURE_TIMINGS__					/* measure computation times */
+#undef __MEASURE_TIMINGS__
 
 #define __ANALYZE_FACTORIZATION__			/* log inverse Newton Hessian for analysis */
 #undef __ANALYZE_FACTORIZATION__
