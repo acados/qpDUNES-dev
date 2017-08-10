@@ -146,7 +146,7 @@ OPTION( QPDUNES_ACADOS
 #
 ################################################################################
 
-if(CMAKE_C_COMPILER_ID MATCHES "GCC" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+if(CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 	SET( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -w -fPIC -Wall -Wextra -pedantic -Wshadow -g -finline-functions -std=c99" )
 endif()
 
