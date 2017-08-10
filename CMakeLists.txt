@@ -310,8 +310,7 @@ ENDIF()
 #
 
 ADD_LIBRARY(
-	qpdunes STATIC
-
+	qpdunes
 	# Sources and headers
 	${qpDUNES_HEADERS}
 	${qpDUNES_SOURCES}
