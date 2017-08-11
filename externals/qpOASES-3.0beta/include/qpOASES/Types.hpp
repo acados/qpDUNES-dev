@@ -93,36 +93,17 @@
   #define snprintf printf
 #endif
 
-#ifdef __DSPACE__
+/** Macro for switching on/off the beginning of the qpOASES namespace definition. */
+#define BEGIN_NAMESPACE_QPOASES  namespace qpOASES {
 
-	/** Macro for switching on/off the beginning of the qpOASES namespace definition. */
-	#define BEGIN_NAMESPACE_QPOASES
-    
-	/** Macro for switching on/off the end of the qpOASES namespace definition. */
-	#define END_NAMESPACE_QPOASES
-
-	/** Macro for switching on/off the use of the qpOASES namespace. */
-	#define USING_NAMESPACE_QPOASES
-
-	/** Macro for switching on/off references to the qpOASES namespace. */
-	#define REFER_NAMESPACE_QPOASES ::
-
-#else
-
-	/** Macro for switching on/off the beginning of the qpOASES namespace definition. */
-	#define BEGIN_NAMESPACE_QPOASES  namespace qpOASES {
-
-	/** Macro for switching on/off the end of the qpOASES namespace definition. */
-	#define END_NAMESPACE_QPOASES    }
+/** Macro for switching on/off the end of the qpOASES namespace definition. */
+#define END_NAMESPACE_QPOASES    }
 	
-	/** Macro for switching on/off the use of the qpOASES namespace. */
-	#define USING_NAMESPACE_QPOASES  using namespace qpOASES;
-	
-	/** Macro for switching on/off references to the qpOASES namespace. */
-	#define REFER_NAMESPACE_QPOASES  qpOASES::
+/** Macro for switching on/off the use of the qpOASES namespace. */
+#define USING_NAMESPACE_QPOASES  using namespace qpOASES;
 
-#endif
-
+/** Macro for switching on/off references to the qpOASES namespace. */
+#define REFER_NAMESPACE_QPOASES  qpOASES::
 
 /** Macro for accessing the Cholesky factor R. */
 #define RR( I,J )  R[(I)+nV*(J)]
