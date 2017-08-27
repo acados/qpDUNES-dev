@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <qp/qpdunes_utils.h>
+#include "qp/qpdunes_utils.h"
 
 
 /* ----------------------------------------------

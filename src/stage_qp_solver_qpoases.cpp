@@ -30,7 +30,7 @@
  */
 
 
-#include <qp/stage_qp_solver_qpoases.hpp>
+#include "qp/stage_qp_solver_qpoases.hpp"
 #include <qpOASES.hpp>
 #include <stdlib.h>
 

@@ -39,11 +39,11 @@
 #ifdef __MEASURE_TIMINGS__
 #include <sys/time.h>
 #endif
-#include <qp/types.h>
+#include "qp/types.h"
 #if !defined(__STATIC_MEMORY__)
-	#include <qp/qpData.h>
+	#include "qp/qpData.h"
 #else
-	#include <qp/qpDataStatic.h>
+	#include "qp/qpDataStatic.h"
 #endif
 
 

@@ -30,7 +30,7 @@
  */
 
 
-#include <qp/stage_qp_solver_clipping.h>
+#include "qp/stage_qp_solver_clipping.h"
 
 /* ----------------------------------------------
  * solve QP

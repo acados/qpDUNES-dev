@@ -30,7 +30,7 @@
  */
 
 
-#include <qp/matrix_vector.h>
+#include "qp/matrix_vector.h"
 
 /* ---------------------------------------------- 
  * Matrix-vector product y = Q*x

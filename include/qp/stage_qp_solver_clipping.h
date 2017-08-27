@@ -34,14 +34,14 @@
 #define QP42_STAGE_QP_SOLVER_CLIPPING_H
 
 
-#include <qp/types.h>
+#include "qp/types.h"
 #if !defined(__STATIC_MEMORY__)
-	#include <qp/qpData.h>
+	#include "qp/qpData.h"
 #else
-	#include <qp/qpDataStatic.h>
+	#include "qp/qpDataStatic.h"
 #endif
-#include <qp/matrix_vector.h>
-#include <qp/qpdunes_utils.h>
+#include "qp/matrix_vector.h"
+#include "qp/qpdunes_utils.h"
 #include <assert.h>
 
 

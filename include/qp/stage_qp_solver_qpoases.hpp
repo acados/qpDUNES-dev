@@ -34,7 +34,7 @@
 #define QP42_STAGE_QP_SOLVER_QPOASES_H
 
 #ifdef __MATLAB__
-	#include <qp/matrix_vector.h>
+	#include "qp/matrix_vector.h"
 #endif /* __MATLAB__ */
 
 #ifdef __cplusplus
@@ -43,15 +43,15 @@ extern "C"
 #endif /* __cplusplus */
 
 
-#include <qp/types.h>
+#include "qp/types.h"
 #if !defined(__STATIC_MEMORY__)
-	#include <qp/qpData.h>
+	#include "qp/qpData.h"
 #else
-	#include <qp/qpDataStatic.h>
+	#include "qp/qpDataStatic.h"
 #endif
-#include <qp/qpdunes_utils.h>
+#include "qp/qpdunes_utils.h"
 
-#include <qp/matrix_vector.h>
+#include "qp/matrix_vector.h"
 
 /** ... */
 qpoasesObject_t* qpOASES_constructor(	qpData_t* qpData,
