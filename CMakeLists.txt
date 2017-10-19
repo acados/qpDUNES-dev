@@ -312,22 +312,23 @@ ENDIF()
 ADD_LIBRARY(
 	qpdunes
 	# Sources and headers
-	${qpDUNES_HEADERS}
+	# ${qpDUNES_HEADERS}
 	${qpDUNES_SOURCES}
 )
 
 TARGET_INCLUDE_DIRECTORIES(qpdunes
 	PUBLIC
-		include
-		include/qp
-		interfaces
-		interfaces/mpc)
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/qp>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/interfaces>
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/interfaces/mpc>
+		$<INSTALL_INTERFACE:include/qpdunes>)
 
 IF( NOT QPDUNES_SIMPLE_BOUNDS_ONLY )
 	TARGET_INCLUDE_DIRECTORIES(qpdunes
 		PUBLIC
-			externals/qpOASES-3.0beta
-			externals/qpOASES-3.0beta/include)
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/externals/qpOASES-3.0beta>
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/externals/qpOASES-3.0beta/include>)
 ENDIF()
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -397,10 +398,15 @@ INSTALL(
 
 INSTALL(
 	TARGETS
-	    qpdunes
-    DESTINATION
-        lib
+		qpdunes
+	EXPORT
+		qpdunesConfig
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	INCLUDES DESTINATION include
 )
+
+install(EXPORT qpdunesConfig DESTINATION cmake)
 
 ################################################################################
 #
