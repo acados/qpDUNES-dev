@@ -69,7 +69,7 @@ CP = cp
 OBJEXT = o
 LIBEXT = a
 DLLEXT = so
-EXE = 
+EXE =
 MEXOCTEXT = mex
 DEF_TARGET = -o $@
 
@@ -83,7 +83,7 @@ else
 	MEXEXT = mexa64
 endif
 
-CPPFLAGS = -Wall -pedantic -Wshadow -Wfloat-equal -O3 -finline-functions -fPIC -DLINUX
+CPPFLAGS = -Wall -pedantic -Wshadow -Wfloat-equal -O3 -finline-functions -fPIC -DLINUX -D__NO_COPYRIGHT__
 #          -g -D__DEBUG__ -D__NO_COPYRIGHT__ -D__SUPPRESSANYOUTPUT__ -D__USE_SINGLE_PRECISION__
 
 FFLAGS = -Wall -O3 -fPIC -DLINUX -Wno-uninitialized

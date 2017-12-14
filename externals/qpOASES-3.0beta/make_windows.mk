@@ -12,7 +12,7 @@
 ##
 ##	qpOASES is distributed in the hope that it will be useful,
 ##	but WITHOUT ANY WARRANTY; without even the implied warranty of
-##	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+##	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ##	See the GNU Lesser General Public License for more details.
 ##
 ##	You should have received a copy of the GNU Lesser General Public
@@ -78,7 +78,7 @@ LIBEXT = lib
 DLLEXT = so
 EXE = .exe
 MEXOCTEXT = mex
-DEF_TARGET = 
+DEF_TARGET =
 
 # 32 or 64 depending on target platform
 BITS = $(shell getconf LONG_BIT)
@@ -90,7 +90,7 @@ else
 	MEXEXT = mexa64
 endif
 
-CPPFLAGS = -nologo -EHsc -DWIN32 -Dsnprintf=_snprintf
+CPPFLAGS = -nologo -EHsc -DWIN32 -Dsnprintf=_snprintf -D__NO_COPYRIGHT__
 #-g -D__DEBUG__ -D__NO_COPYRIGHT__ -D__SUPPRESSANYOUTPUT__
 
 FFLAGS = -Wall -O3 -fPIC -DWIN32 -Wno-uninitialized
