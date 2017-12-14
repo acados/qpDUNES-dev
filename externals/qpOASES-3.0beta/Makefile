@@ -35,7 +35,7 @@
 ##
 
 
-all: src #examples 
+all: src
 
 src:
 	@cd $@; ${MAKE} -s 

@@ -39,7 +39,7 @@ BINDIR = ${TOP}/bin
 
 # Matlab include directory (ADAPT TO YOUR LOCAL SETTINGS!)
 MATLAB_IDIR   = /Applications/MATLAB_R2011a.app/extern/include/
-MATLAB_LIBDIR = 
+MATLAB_LIBDIR =
 
 ## system BLAS or qpOASES replacement BLAS
 #LIB_BLAS = "-framework Accelerate"
@@ -61,7 +61,7 @@ CD = cd
 OBJEXT = o
 LIBEXT = a
 DLLEXT = dylib
-EXE = 
+EXE =
 MEXOCTEXT = mex
 DEF_TARGET = -o $@
 
@@ -75,18 +75,18 @@ else
 	MEXEXT = mexa64
 endif
 
-CPPFLAGS = -Wall -pedantic -Wshadow -Wfloat-equal -O3 -finline-functions -fPIC -DLINUX
+CPPFLAGS = -Wall -pedantic -Wshadow -Wfloat-equal -O3 -finline-functions -fPIC -DLINUX -D__NO_COPYRIGHT__
 #          -g -D__DEBUG__ -D__NO_COPYRIGHT__ -D__SUPPRESSANYOUTPUT__ -D__USE_SINGLE_PRECISION__
 
 FFLAGS = -Wall -O3 -fPIC -DLINUX -Wno-uninitialized
-#        -g 
+#        -g
 
 # libraries to link against when building qpOASES .so files
 LINK_LIBRARIES = -framework Accelerate -lm
 LINK_LIBRARIES_AW = -framework Accelerate ${LIB_LAPACK} ${LIB_BLAS} -lm -lgfortran -lhsl_ma57 -lfakemetis
 
 # how to link against the qpOASES shared library
-QPOASES_LINK = -L${BINDIR}  -lqpOASES 
+QPOASES_LINK = -L${BINDIR}  -lqpOASES
 QPOASES_AW_LINK = -L${BINDIR}  -lqpOASES_aw
 
 # link dependencies when creating executables

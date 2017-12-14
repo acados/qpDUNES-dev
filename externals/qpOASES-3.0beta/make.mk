@@ -32,7 +32,16 @@
 
 TOP = $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 
-#include ${TOP}/make_linux.mk
+ifeq ($(OS),Windows_NT)
+    include ${TOP}/make_windows.mk
+else
+    UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+        include ${TOP}/make_linux.mk
+    endif
+	ifeq ($(UNAME_S),Darwin)
+        include ${TOP}/make_osx.mk
+    endif
+endif
+
 #include ${TOP}/make_cygwin.mk
-#include ${TOP}/make_windows.mk
-include ${TOP}/make_osx.mk

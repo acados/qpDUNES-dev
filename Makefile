@@ -39,13 +39,13 @@ all:
 	@  cd src               			&& ${MAKE} && cd .. \
 	&& cd externals/qpOASES-3.0beta/src	&& ${MAKE} && cd ../../.. \
 	&& cd interfaces/mpc    			&& ${MAKE} && cd ../.. \
-	&& cd examples          			&& ${MAKE} && cd .. 
+	#&& cd examples          			&& ${MAKE} && cd .. 
 
 clean:
 	@  cd src               			&& ${MAKE} clean && cd .. \
 	&& cd externals/qpOASES-3.0beta/src	&& ${MAKE} clean && cd ../../.. \
 	&& cd interfaces/mpc    			&& ${MAKE} clean && cd ../.. \
-	&& cd examples          			&& ${MAKE} clean && cd .. 
+	#&& cd examples          			&& ${MAKE} clean && cd .. 
 
 clobber: clean
 
