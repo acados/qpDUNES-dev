@@ -38,7 +38,7 @@
 // NOTE: /opt is the default blasfeo install path
 #include "/opt/blasfeo/include/blasfeo_target.h"
 #include "/opt/blasfeo/include/blasfeo_common.h"
-#include "/opt/blasfeo/include/blasfeo_i_aux.h"
+// #include "/opt/blasfeo/include/blasfeo_i_aux.h"
 #include "/opt/blasfeo/include/blasfeo_d_aux.h"
 #include "/opt/blasfeo/include/blasfeo_d_aux_ext_dep.h"
 #include "/opt/blasfeo/include/blasfeo_v_aux_ext_dep.h"
@@ -46,28 +46,28 @@
 
 int calculate_blasfeo_memory_size(int ni, int nx) {
 	int bytes = 0;
-	bytes += 2*ni*d_size_strmat(nx, nx);  // sHessDiag and sCholDiag
-	bytes += 2*(ni-1)*d_size_strmat(nx, nx);  // sHessLow and sCholLow
-	bytes += 2*ni*d_size_strvec(nx);  // sgradient and sres
+	bytes += 2*ni*blasfeo_memsize_dmat(nx, nx);  // sHessDiag and sCholDiag
+	bytes += 2*(ni-1)*blasfeo_memsize_dmat(nx, nx);  // sHessLow and sCholLow
+	bytes += 2*ni*blasfeo_memsize_dvec(nx);  // sgradient and sres
 	return bytes;
 }
 
 
-void convert_strmats_to_single_vec(int n, struct d_strmat sMat[], double *mat) {
+void convert_strmats_to_single_vec(int n, struct blasfeo_dmat sMat[], double *mat) {
     int ind = 0;
     int i;
     for (i = 0; i < n; i++) {
-        d_cvt_strmat2mat(sMat[i].m, sMat[i].n, &sMat[i], 0, 0, &mat[ind], sMat[i].m);
+        blasfeo_unpack_dmat(sMat[i].m, sMat[i].n, &sMat[i], 0, 0, &mat[ind], sMat[i].m);
         ind += sMat[i].m*sMat[i].n;
     }
 }
 
 
-void convert_strvecs_to_single_vec(int n, struct d_strvec sv[], double *v) {
+void convert_strvecs_to_single_vec(int n, struct blasfeo_dvec sv[], double *v) {
     int ind = 0;
     int i;
     for (i = 0; i < n; i++) {
-        d_cvt_strvec2vec(sv[i].m, &sv[i], 0, &v[ind]);
+        blasfeo_unpack_dvec(sv[i].m, &sv[i], 0, &v[ind]);
         ind += sv[i].m;
     }
 }
@@ -125,34 +125,34 @@ return_t qpDUNES_solve(qpData_t* const qpData) {
     v_zeros_align(&tmp_blasfeo_ptr, blasfeo_memory_size);
     blasfeo_ptr = (char *) tmp_blasfeo_ptr;
 
-	struct d_strmat sHessDiag[_NI_];
-	struct d_strmat sHessLow[_NI_ - 1];
-	struct d_strmat sCholDiag[_NI_];
-	struct d_strmat sCholLow[_NI_ - 1];  // NOTE: THIS IS TRANSPOSED!
-	struct d_strvec sgradient[_NI_];
-	struct d_strvec sres[_NI_];
+	struct blasfeo_dmat sHessDiag[_NI_];
+	struct blasfeo_dmat sHessLow[_NI_ - 1];
+	struct blasfeo_dmat sCholDiag[_NI_];
+	struct blasfeo_dmat sCholLow[_NI_ - 1];  // NOTE: THIS IS TRANSPOSED!
+	struct blasfeo_dvec sgradient[_NI_];
+	struct blasfeo_dvec sres[_NI_];
 
-	d_create_strmat(_NX_, _NX_, &sHessDiag[0], blasfeo_ptr);
-	blasfeo_ptr += sHessDiag[0].memory_size;
-	d_create_strmat(_NX_, _NX_, &sCholDiag[0], blasfeo_ptr);
-	blasfeo_ptr += sCholDiag[0].memory_size;
-	d_create_strvec(_NX_, &sgradient[0], blasfeo_ptr);
-	blasfeo_ptr += sgradient[0].memory_size;
-	d_create_strvec(_NX_, &sres[0], blasfeo_ptr);
-	blasfeo_ptr += sres[0].memory_size;
+	blasfeo_create_dmat(_NX_, _NX_, &sHessDiag[0], blasfeo_ptr);
+	blasfeo_ptr += sHessDiag[0].memsize;
+	blasfeo_create_dmat(_NX_, _NX_, &sCholDiag[0], blasfeo_ptr);
+	blasfeo_ptr += sCholDiag[0].memsize;
+	blasfeo_create_dvec(_NX_, &sgradient[0], blasfeo_ptr);
+	blasfeo_ptr += sgradient[0].memsize;
+	blasfeo_create_dvec(_NX_, &sres[0], blasfeo_ptr);
+	blasfeo_ptr += sres[0].memsize;
 	for (ii = 1; ii < _NI_; ii++) {
-		d_create_strmat(_NX_, _NX_, &sHessDiag[ii], blasfeo_ptr);
-		blasfeo_ptr += sHessDiag[ii].memory_size;
-		d_create_strmat(_NX_, _NX_, &sHessLow[ii-1], blasfeo_ptr);
-		blasfeo_ptr += sHessLow[ii-1].memory_size;
-		d_create_strmat(_NX_, _NX_, &sCholDiag[ii], blasfeo_ptr);
-		blasfeo_ptr += sCholDiag[ii].memory_size;
-		d_create_strmat(_NX_, _NX_, &sCholLow[ii-1], blasfeo_ptr);
-		blasfeo_ptr += sCholLow[ii-1].memory_size;
-		d_create_strvec(_NX_, &sgradient[ii], blasfeo_ptr);
-		blasfeo_ptr += sgradient[ii].memory_size;
-		d_create_strvec(_NX_, &sres[ii], blasfeo_ptr);
-		blasfeo_ptr += sres[ii].memory_size;
+		blasfeo_create_dmat(_NX_, _NX_, &sHessDiag[ii], blasfeo_ptr);
+		blasfeo_ptr += sHessDiag[ii].memsize;
+		blasfeo_create_dmat(_NX_, _NX_, &sHessLow[ii-1], blasfeo_ptr);
+		blasfeo_ptr += sHessLow[ii-1].memsize;
+		blasfeo_create_dmat(_NX_, _NX_, &sCholDiag[ii], blasfeo_ptr);
+		blasfeo_ptr += sCholDiag[ii].memsize;
+		blasfeo_create_dmat(_NX_, _NX_, &sCholLow[ii-1], blasfeo_ptr);
+		blasfeo_ptr += sCholLow[ii-1].memsize;
+		blasfeo_create_dvec(_NX_, &sgradient[ii], blasfeo_ptr);
+		blasfeo_ptr += sgradient[ii].memsize;
+		blasfeo_create_dvec(_NX_, &sres[ii], blasfeo_ptr);
+		blasfeo_ptr += sres[ii].memsize;
 	}
 #endif
 
@@ -1064,10 +1064,10 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 									 xn2x_matrix_t* cholHessian,
 									 xn2x_matrix_t* hessian,
 #if __USE_BLASFEO__ == 1
-									struct d_strmat *sCholDiag,
-									struct d_strmat *sCholLow,
-									struct d_strmat *sHessDiag,
-									struct d_strmat *sHessLow,
+									struct blasfeo_dmat *sCholDiag,
+									struct blasfeo_dmat *sCholLow,
+									struct blasfeo_dmat *sHessDiag,
+									struct blasfeo_dmat *sHessLow,
 #endif
 								  	 boolean_t* const isHessianRegularized,
 								  	 int_t lastActSetChangeIdx
@@ -1114,7 +1114,7 @@ return_t qpDUNES_factorNewtonSystem( qpData_t* const qpData,
 	int posval;
 	for (kk = 0; kk < _NI_; kk++) {
 		for (ii = 0; ii < _NX_; ii++) {
-			val = dgeex1_libstr(&sCholDiag[kk], ii, ii);
+			val = blasfeo_dgeex1(&sCholDiag[kk], ii, ii);
 			if (minDiagElem > val ) {
 				minDiagElem = val;
 				posval = kk;
@@ -1373,10 +1373,10 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 													xn2x_matrix_t* const cholHessian,
 													xn2x_matrix_t* const hessian,
 #if __USE_BLASFEO__ == 1
-													struct d_strmat *sCholDiag,
-													struct d_strmat *sCholLow,
-													struct d_strmat *sHessDiag,
-													struct d_strmat *sHessLow,
+													struct blasfeo_dmat *sCholDiag,
+													struct blasfeo_dmat *sCholLow,
+													struct blasfeo_dmat *sHessDiag,
+													struct blasfeo_dmat *sHessLow,
 #endif
 													int_t lastActSetChangeIdx, 			/**< index from where the reverse factorization is restarted */
 													boolean_t* isHessianRegularized
@@ -1393,10 +1393,10 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 	int_t blockIdxStart = (lastActSetChangeIdx>=0)  ?  qpDUNES_min(lastActSetChangeIdx, _NI_-1)  :  -1;
 	//	int_t blockIdxStart = _NI_-1;
 #if __USE_BLASFEO__ == 1
-	d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[_NX_], 2*_NX_, &sHessDiag[0], 0, 0);
+	blasfeo_pack_tran_dmat(_NX_, _NX_, &hessian->data[_NX_], 2*_NX_, &sHessDiag[0], 0, 0);
 	for (ii = 1; ii <= blockIdxStart; ii++) {
-		d_cvt_tran_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);
-		d_cvt_mat2strmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);
+		blasfeo_pack_tran_dmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_) + _NX_], 2*_NX_, &sHessDiag[ii], 0, 0);
+		blasfeo_pack_dmat(_NX_, _NX_, &hessian->data[2*ii*(_NX_*_NX_)], 2*_NX_, &sHessLow[ii-1], 0, 0);
 	}
 #endif
 
@@ -1501,25 +1501,25 @@ return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 #if __USE_BLASFEO__ == 1
 	if (blockIdxStart < _NI_ - 1) {
 		/* Update from previous iteration */
-		dsyrk_ln_libstr(_NX_, _NX_, -1.0, &sCholLow[blockIdxStart], 0, 0,
+		blasfeo_dsyrk_ln(_NX_, _NX_, -1.0, &sCholLow[blockIdxStart], 0, 0,
 		&sCholLow[blockIdxStart], 0, 0, 1.0, &sHessDiag[blockIdxStart], 0, 0,
 		&sHessDiag[blockIdxStart], 0, 0);
 	}
     for (kk = blockIdxStart; kk > 0; kk--) {
             /* Cholesky factorization to calculate factor of current diagonal block */
-            dpotrf_l_libstr(_NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
+            blasfeo_dpotrf_l(_NX_, &sHessDiag[kk], 0, 0, &sCholDiag[kk], 0, 0);
 
 			/* Matrix substitution to calculate transposed factor of parent block */
-            dtrsm_rltn_libstr(_NX_, _NX_, 1.0, &sCholDiag[kk],
+            blasfeo_dtrsm_rltn(_NX_, _NX_, 1.0, &sCholDiag[kk],
                 0, 0, &sHessLow[kk-1], 0, 0, &sCholLow[kk-1], 0, 0);
 
             /* Symmetric matrix multiplication to update diagonal block of parent */
-            dsyrk_ln_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0,
+            blasfeo_dsyrk_ln(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0,
                 &sCholLow[kk-1], 0, 0, 1.0, &sHessDiag[kk-1], 0, 0, &sHessDiag[kk-1], 0, 0);
     }
 
     /* Calculate Cholesky factor of root block */
-    dpotrf_l_libstr(_NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
+    blasfeo_dpotrf_l(_NX_, &sHessDiag[0], 0, 0, &sCholDiag[kk], 0, 0);
 
 #if __DEBUG_BLASFEO__ == 1
 	double Choldiag[_NI_*_NX_*_NX_];
@@ -1624,10 +1624,10 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 											xn_vector_t* const res,
 											const xn2x_matrix_t* const cholHessian, /**< lower triangular Newton Hessian factor */
 #if __USE_BLASFEO__ == 1
-												struct d_strmat *sCholDiag,
-												struct d_strmat *sCholLow,
-												struct d_strvec *sgradient,
-												struct d_strvec *sres,
+												struct blasfeo_dmat *sCholDiag,
+												struct blasfeo_dmat *sCholLow,
+												struct blasfeo_dvec *sgradient,
+												struct blasfeo_dvec *sres,
 #endif
 											const xn_vector_t* const gradient	)
 {
@@ -1639,7 +1639,7 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 
 #if __USE_BLASFEO__ == 1
 	for (ii = 0; ii < _NI_; ii++) {
-		d_cvt_vec2strvec(_NX_, &gradient->data[ii*_NX_], &sgradient[ii], 0);
+		blasfeo_pack_dvec(_NX_, &gradient->data[ii*_NX_], &sgradient[ii], 0);
 	}
 #endif
 
@@ -1709,23 +1709,23 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 	/* Backward substitution (stores in sres, destroys sgradient) */
 	for (kk = _NI_ - 1; kk > 0; kk--) {
 		/* Vector substitution */
-		dtrsv_lnn_libstr(_NX_, &sCholDiag[kk], 0, 0, &sgradient[kk], 0, &sres[kk], 0);
+		blasfeo_dtrsv_lnn(_NX_, &sCholDiag[kk], 0, 0, &sgradient[kk], 0, &sres[kk], 0);
 
 		/* Update */
-		dgemv_n_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk], 0, 1.0,
+		blasfeo_dgemv_n(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk], 0, 1.0,
 			&sgradient[kk-1], 0, &sgradient[kk-1], 0);
     }
-    dtrsv_lnn_libstr(_NX_, &sCholDiag[0], 0, 0, &sgradient[0], 0, &sres[0], 0);
+    blasfeo_dtrsv_lnn(_NX_, &sCholDiag[0], 0, 0, &sgradient[0], 0, &sres[0], 0);
 
 
 	/* Forward substitution (stores in sres) */
-    dtrsv_ltn_libstr(_NX_, &sCholDiag[0], 0, 0, &sres[0], 0, &sres[0], 0);
+    blasfeo_dtrsv_ltn(_NX_, &sCholDiag[0], 0, 0, &sres[0], 0, &sres[0], 0);
 
     for (kk = 1; kk < _NI_; kk++) {
-		dgemv_t_libstr(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk-1], 0, 1.0,
+		blasfeo_dgemv_t(_NX_, _NX_, -1.0, &sCholLow[kk-1], 0, 0, &sres[kk-1], 0, 1.0,
 			&sres[kk], 0, &sres[kk], 0);
 
-		dtrsv_ltn_libstr(_NX_, &sCholDiag[kk], 0, 0, &sres[kk], 0, &sres[kk], 0);
+		blasfeo_dtrsv_ltn(_NX_, &sCholDiag[kk], 0, 0, &sres[kk], 0, &sres[kk], 0);
     }
 
 #if __DEBUG_BLASFEO__ == 1

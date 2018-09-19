@@ -2,7 +2,7 @@
  *	This file is part of qpDUNES.
  *
  *	qpDUNES -- A DUal NEwton Strategy for convex quadratic programming.
- *	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al. 
+ *	Copyright (C) 2012 by Janick Frasch, Hans Joachim Ferreau et al.
  *	All rights reserved.
  *
  *	qpDUNES is free software; you can redistribute it and/or
@@ -89,7 +89,7 @@ return_t qpDUNES_updateAllLocalQPs(	qpData_t* const qpData,
 
 /* ----------------------------------------------
  * solve local QP
- * 
+ *
  >>>>>>                                           */
 return_t qpDUNES_solveLocalQP(	qpData_t* const qpData,
 								interval_t* const interval,
@@ -107,10 +107,10 @@ return_t qpDUNES_factorNewtonSystem(	qpData_t* const qpData,
 										xn2x_matrix_t* const cholHessian,
 										xn2x_matrix_t* const hessian,
 #if __USE_BLASFEO__ == 1
-											struct d_strmat *sCholDiag,
-											struct d_strmat *sCholLow,
-											struct d_strmat *sHessDiag,
-											struct d_strmat *sHessLow,
+											struct blasfeo_dmat *sCholDiag,
+											struct blasfeo_dmat *sCholLow,
+											struct blasfeo_dmat *sHessDiag,
+											struct blasfeo_dmat *sHessLow,
 #endif
 										boolean_t* const isHessianRegularized,
 										int_t lastHessianDataChangeIdx
@@ -132,14 +132,14 @@ return_t qpDUNES_factorizeNewtonHessian(	qpData_t* const qpData,
 											boolean_t* isHessianRegularized
 											);
 
-return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData, 
+return_t qpDUNES_factorizeNewtonHessianBottomUp(	qpData_t* const qpData,
 													xn2x_matrix_t* const cholHessian,
 													xn2x_matrix_t* const hessian,
 #if __USE_BLASFEO__ == 1
-													struct d_strmat *sCholDiag,
-													struct d_strmat *sCholLow,
-													struct d_strmat *sHessDiag,
-													struct d_strmat *sHessLow,
+													struct blasfeo_dmat *sCholDiag,
+													struct blasfeo_dmat *sCholLow,
+													struct blasfeo_dmat *sHessDiag,
+													struct blasfeo_dmat *sHessLow,
 #endif
 													int_t lastActSetChangeIdx,
 													boolean_t* isHessianRegularized
@@ -155,10 +155,10 @@ return_t qpDUNES_solveNewtonEquationBottomUp(	qpData_t* const qpData,
 												xn_vector_t* const res,
 												const xn2x_matrix_t* const cholHessian,	/**< lower triangular Newton Hessian factor */
 #if __USE_BLASFEO__ == 1
-												struct d_strmat *sCholDiag,
-												struct d_strmat *sCholLow,
-												struct d_strvec *sgradient,
-												struct d_strvec *sres,
+												struct blasfeo_dmat *sCholDiag,
+												struct blasfeo_dmat *sCholLow,
+												struct blasfeo_dvec *sgradient,
+												struct blasfeo_dvec *sres,
 #endif
 												const xn_vector_t* const gradient
 												);
