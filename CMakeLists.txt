@@ -46,7 +46,7 @@
 #
 # Minimum required version of cmake
 #
-CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
+CMAKE_MINIMUM_REQUIRED( VERSION 2.8...4.0  )
 
 #
 # Project name and programming languages used
